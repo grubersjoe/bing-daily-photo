@@ -20,7 +20,7 @@ The constructor has some optional parameters:
 
 ```php
 // Fetches three images of the day in low resolution, starting yesterday
-$bing  = new BingPhoto(self::YESTERDAY, 3, 'en-US', self::RESOLUTION_LOW);
+$bing  = new BingPhoto(BingPhoto::YESTERDAY, 3, 'en-US', BingPhoto::RESOLUTION_LOW);
 // Use the getImages() methode then
 $images = $bing->getImages();
 ```
