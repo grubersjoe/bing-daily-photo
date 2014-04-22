@@ -5,9 +5,9 @@
  */
 class BingPhoto {
     // Configuration 'enumeration'
-    const DATE_TOMORROW   = -1;
-    const DATE_TODAY      =  0;
-    const DATE_YESTERDAY  =  1;
+    const TOMORROW   = -1;
+    const TODAY      =  0;
+    const YESTERDAY  =  1;
     const LIMIT_N         =  8; // Bing's API returns at most 8 images
     const RESOLUTION_LOW  = '1366x768';
     const RESOLUTION_HIGH = '1920x1080';
@@ -26,7 +26,7 @@ class BingPhoto {
      * @param string $locale      Localization
      * @param string $resolution  Resolution of images(s)
      */
-    public function __construct($date = self::DATE_TODAY, $n = 1, $locale = 'en-US', $resolution = self::RESOLUTION_HIGH) {
+    public function __construct($date = self::TODAY, $n = 1, $locale = 'en-US', $resolution = self::RESOLUTION_HIGH) {
         $this->args = array(
             'date'       => $date,
             'n'          => $n,
@@ -75,8 +75,8 @@ class BingPhoto {
      * @return array       Valid arguments or false on failure
      */
     private function sanityCheck() {
-        if ($this->args['date'] < self::DATE_TOMORROW)
-            $this->args['date'] = self::DATE_TOMORROW;
+        if ($this->args['date'] < self::TOMORROW)
+            $this->args['date'] = self::TOMORROW;
 
         if ($this->args['n'] > self::LIMIT_N)
             $this->args['n'] = self::LIMIT_N;
