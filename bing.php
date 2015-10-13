@@ -68,7 +68,6 @@ class BingPhoto {
      */
     public function getArgs() {
         $this->sanityCheck();
-
         return $this->args;
     }
 
