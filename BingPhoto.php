@@ -28,13 +28,12 @@ class BingPhoto {
      * @param string $resolution Resolution of images(s)
      */
     public function __construct($date = self::TODAY, $n = 1, $locale = 'en-US', $resolution = self::RESOLUTION_HIGH) {
-        $this->args = array(
+        $this->setArgs(array(
             'date'       => $date,
             'n'          => $n,
             'locale'     => $locale,
             'resolution' => $resolution
-        );
-        $this->sanityCheck();
+        ));
 
         try {
             $this->fetchImages();
@@ -74,19 +73,21 @@ class BingPhoto {
     /**
      * Sets the class arguments
      * @param array $args
-     * @return bool
      */
     public function setArgs($args = array()) {
-        $this->args = array_merge($this->args, $args);
+        $this->args = array_replace(array (
+            'date'       => self::TODAY,
+            'n'          => 1,
+            'locale'     => 'en-US',
+            'resolution' => self::RESOLUTION_HIGH
+        ), $args);
         $this->sanityCheck();
 
-        try {
+		 try {
             $this->fetchImages();
         } catch (Exception $e) {
             die($e->getMessage());
         }
-
-        return TRUE;
     }
 
     /**
