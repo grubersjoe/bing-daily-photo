@@ -1,7 +1,7 @@
 <?php
 
 /**
- * A simple class, which fetches Bing's image of the day with meta data
+ * A simple class which fetches Bing's image of the day with meta data
  */
 class BingPhoto {
 
