@@ -7,6 +7,17 @@ BingPhoto is a simple PHP class which fetches Bing's image of the day with meta 
 ```php
 $bing  = new BingPhoto();
 $image = $bing->getImage();
+
+// printr($image):
+[
+    [startdate] => 20160913
+    [fullstartdate] => 201609130700
+    [enddate] => 20160914
+    [url] => http://www.bing.com/az/hprichbg/rb/Meteora_EN-US6763889417_1920x1080.jpg
+    [urlbase] => /az/hprichbg/rb/Meteora_EN-US6763889417
+    [copyright] => Roussanou and other monasteries in Metéora, Greece (© Stian Rekdal/Nimia)   
+    // ...
+]
 ```
 
 ## Parameters
