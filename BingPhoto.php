@@ -3,7 +3,8 @@
 /**
  * A simple class which fetches Bing's image of the day with meta data
  */
-class BingPhoto {
+class BingPhoto
+{
 
     // Constants
     const TOMORROW = -1;
@@ -27,18 +28,19 @@ class BingPhoto {
      * @param string $locale Localization string (en-US, de-DE, ...)
      * @param string $resolution Resolution of images(s)
      */
-    public function __construct($date = self::TODAY, $n = 1, $locale = 'en-US', $resolution = self::RESOLUTION_HIGH) {
-        $this->setArgs(array(
-            'date'       => $date,
-            'n'          => $n,
-            'locale'     => $locale,
+    public function __construct($date = self::TODAY, $n = 1, $locale = 'en-US', $resolution = self::RESOLUTION_HIGH)
+    {
+        $this->setArgs([
+            'n' => $n,
+            'date' => $date,
+            'locale' => $locale,
             'resolution' => $resolution
-        ));
+        ]);
 
         try {
             $this->fetchImages();
         } catch (Exception $e) {
-            die($e->getMessage());
+            exit($e->getMessage());
         }
     }
 
@@ -46,9 +48,11 @@ class BingPhoto {
      * Returns exactly one fetched image
      * @return array The image array with its URL and further meta data
      */
-    public function getImage() {
-        $image = $this->getImages(1);
-        return $image[0];
+    public function getImage()
+    {
+        $images = $this->getImages(1);
+
+        return $images[0];
     }
 
     /**
@@ -56,8 +60,10 @@ class BingPhoto {
      * @param int $n Number of images to return
      * @return array Image data
      */
-    public function getImages($n = 1) {
+    public function getImages($n = 1)
+    {
         $n = max($n, count($this->data));
+
         return array_slice($this->data, 0, $n);
     }
 
@@ -65,8 +71,8 @@ class BingPhoto {
      * Returns the class arguments
      * @return array Class arguments
      */
-    public function getArgs() {
-        $this->sanityCheck();
+    public function getArgs()
+    {
         return $this->args;
     }
 
@@ -74,54 +80,47 @@ class BingPhoto {
      * Sets the class arguments
      * @param array $args
      */
-    public function setArgs($args = array()) {
-        $this->args = array_replace(array (
-            'date'       => self::TODAY,
-            'n'          => 1,
-            'locale'     => 'en-US',
+    public function setArgs($args = [])
+    {
+        $defaults = [
+            'n' => 1,
+            'locale' => 'en-US',
+            'date' => self::TODAY,
             'resolution' => self::RESOLUTION_HIGH
-        ), $args);
-        $this->sanityCheck();
+        ];
+        $this->args = array_replace($defaults, $args);
 
-		 try {
+        $this->validateArgs();
+
+        try {
             $this->fetchImages();
         } catch (Exception $e) {
-            die($e->getMessage());
+            exit($e->getMessage());
         }
     }
 
     /**
-     * Performs some sanity checks
-     * @return array Validated arguments
-     * @internal param array $args Class arguments
+     * Perform some sanity checks
      */
-    private function sanityCheck() {
-        if ($this->args['date'] < self::TOMORROW) {
-            $this->args['date'] = self::TOMORROW;
-        }
+    private function validateArgs()
+    {
+        $this->args['date'] = max($this->args['date'], self::TOMORROW);
+        $this->args['n'] = min(max($this->args['n'], 1), self::LIMIT_N);
 
-        if ($this->args['n'] > self::LIMIT_N) {
-            $this->args['n'] = self::LIMIT_N;
-        }
-        if ($this->args['n'] < 1) {
-            $this->args['n'] = 1;
-        }
-
-        if (false === in_array($this->args['resolution'], array(self::RESOLUTION_LOW, self::RESOLUTION_HIGH))) {
+        if (false === in_array($this->args['resolution'], [self::RESOLUTION_LOW, self::RESOLUTION_HIGH])) {
             $this->args['resolution'] = self::RESOLUTION_HIGH;
         }
     }
 
     /**
-	 * Fetches the image JSON data from Bing
+     * Fetches the image JSON data from Bing
      * @throws Exception
      */
-    private function fetchImages() {
-        // Constructing API url
-        $url = self::BASE_URL . self::JSON_URL
-            . '&idx=' . $this->args['date']
-            . '&n=' . $this->args['n']
-            . '&mkt=' . $this->args['locale'];
+    private function fetchImages()
+    {
+        // Constructing API URL
+        $fstring = self::BASE_URL . self::JSON_URL . '&idx=%s&n=%s&mkt=%s';
+        $url = sprintf($fstring, $this->args['date'], $this->args['n'], $this->args['locale']);
 
         try {
             $this->data = $this->fetchJSON($url);
@@ -137,9 +136,11 @@ class BingPhoto {
      * @return array Associative data array
      * @throws Exception
      */
-    private function fetchJSON($url) {
-        $data  = json_decode(file_get_contents($url), true);
+    private function fetchJSON($url)
+    {
+        $data = json_decode(file_get_contents($url), true);
         $error = json_last_error();
+
         if ($data !== null && $error === JSON_ERROR_NONE) {
             return $data;
         } else {
@@ -152,11 +153,11 @@ class BingPhoto {
      * @param array $images Array with image data
      * @return array Modified image data array
      */
-    private function setQuality($images) {
+    private function setQuality($images)
+    {
         foreach ($images as $i => $image) {
-            $images[$i]['url'] = self::BASE_URL . str_replace(
-                self::RESOLUTION_HIGH, $this->args['resolution'], $image['url']
-            );
+            $url = str_replace(self::RESOLUTION_HIGH, $this->args['resolution'], $image['url']);
+            $images[$i]['url'] = self::BASE_URL . $url;
         }
 
         return $images;
