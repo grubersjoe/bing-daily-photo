@@ -53,8 +53,10 @@ foreach ($bing->getImages() as $image) {
 
 
 ```php
-// Daily Save picture
+// Daily Save picture, if images exist
+if(!file_exists(date('Ymd').".png")){
 $bing  = new BingPhoto(BingPhoto::TODAY, 1);
-foreach ($bing->getImages() as $image) 
-    file_put_contents($image['startdate'].".png", file_get_contents($image['url']),FILE_APPEND);
+	foreach ($bing->getImages() as $image) 
+		file_put_contents($image['startdate'].".png", file_get_contents($image['url']));		
+}
 ```
