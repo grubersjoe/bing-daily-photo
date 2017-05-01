@@ -1,3 +1,7 @@
+Author: Jonathan Gruber
+
+Github: https://github.com/grubersjoe
+
 # Bing Daily Photo
 
 BingPhoto is a simple PHP class to fetch Bing's image of the day with meta data.
@@ -45,4 +49,12 @@ $bing  = new BingPhoto(BingPhoto::YESTERDAY, 3, 'fr-FR', BingPhoto::RESOLUTION_L
 foreach ($bing->getImages() as $image) {
     printf('<img src="%s">', $image['url']);
 }
+```
+
+
+```php
+// Daily Save picture
+$bing  = new BingPhoto(BingPhoto::TODAY, 1);
+foreach ($bing->getImages() as $image) 
+    file_put_contents($image['startdate'].".png", file_get_contents($image['url']),FILE_APPEND);
 ```
