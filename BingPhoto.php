@@ -97,13 +97,14 @@ class BingPhoto
 
     /**
      * Perform some sanity checks
+     * @param array $args Arguments
+     * @return array Sanitized arguments
      */
     private function sanitizeArgs(array $args)
     {
         $args['date'] = max($args['date'], self::TOMORROW);
         $args['n'] = min(max($args['n'], 1), self::LIMIT_N);
-
-        if (false === in_array($args['resolution'], [self::RESOLUTION_LOW, self::RESOLUTION_HIGH])) {
+        if (!in_array($args['resolution'], [self::RESOLUTION_HIGH, self::RESOLUTION_LOW])) {
             $args['resolution'] = self::RESOLUTION_HIGH;
         }
 

@@ -1,4 +1,5 @@
 <?php
+
 use PHPUnit\Framework\TestCase;
 
 require('BingPhoto.php');
@@ -21,30 +22,39 @@ class BingPhotoTest extends TestCase
     }
 
     /**
-     * @dataProvider argumentProvider
+     * @dataProvider countProvider
      * @param $args
      */
     public function testCount($args = [])
     {
         $bingPhoto = new BingPhoto($args);
-        $count = $args['n'] ?? 1;
+        $count = min($args['n'] ?? 1, BingPhoto::LIMIT_N);
         $this->assertCount($count, $bingPhoto->getImages());
     }
 
     /**
-     * @dataProvider argumentProvider
+     * @dataProvider dateProvider
+     * @param $args
+     */
+    public function testDate($args = [])
+    {
+        $bingPhoto = new BingPhoto($args);
+        $image = $bingPhoto->getImage();
+        $expected = date('Ymd', strtotime(sprintf('-%d days', $args['date'] ?? BingPhoto::TODAY)));
+        $this->assertEquals($expected, $image['startdate']);
+
+    }
+
+    /**
+     * @dataProvider resolutionProvider
      * @param $args
      */
     public function testResolution($args = [])
     {
         $bingPhoto = new BingPhoto($args);
         foreach ($bingPhoto->getImages() as $image) {
-            if (isset($args['resolution'])) {
-                list($width, $height) = getimagesize($image['url']);
-                $this->assertEquals($width . 'x' . $height, $args['resolution']);
-            } else {
-                $this->assertTrue(true);
-            }
+            list($width, $height) = getimagesize($image['url']);
+            $this->assertEquals($width . 'x' . $height, $args['resolution'] ?? BingPhoto::RESOLUTION_HIGH);
         }
     }
 
@@ -52,83 +62,81 @@ class BingPhotoTest extends TestCase
     {
         return [
             'invalid date in future' => [
-                [
-                    'date' => -1
-                ],
-                [
-                    'date' => -2
-                ]
+                ['date' => -1],
+                ['date' => -2],
             ],
             'n too large' => [
-                [
-                    'n' => 8
-                ],
-                [
-                    'n' => 9
-                ]
+                ['n' => 8],
+                ['n' => 9],
             ],
             'n zero' => [
-                [
-                    'n' => 1
-                ],
-                [
-                    'n' => 0
-                ]
+                ['n' => 1],
+                ['n' => 0],
             ],
             'n negative' => [
-                [
-                    'n' => 1
-                ],
-                [
-                    'n' => -2
-                ]
+                ['n' => 1],
+                ['n' => -2],
             ],
             'unavailable resolution' => [
-                [
-                    'resolution' => '1920x1080'
-                ],
-                [
-                    'resolution' => '1920x1200'
-                ]
+                ['resolution' => '1920x1080'],
+                ['resolution' => '800x600'],
             ],
             'invalid resolution' => [
-                [
-                    'resolution' => '1920x1080'
-                ],
-                [
-                    'resolution' => 'foo'
-                ]
+                ['resolution' => '1920x1080'],
+                ['resolution' => '😳'],
+            ],
+            'empty resolution' => [
+                ['resolution' => '1920x1080'],
+                ['resolution' => null],
             ],
         ];
     }
 
-    public function argumentProvider()
+    public function countProvider()
+    {
+        return [
+            'one image' => [],
+            'one image explicitly' => [
+                ['n' => 1],
+            ],
+            'two images' => [
+                ['n' => 2],
+            ],
+            'eight images' => [
+                ['n' => 8],
+            ],
+            'nine images' => [
+                ['n' => 9],
+            ],
+        ];
+    }
+
+    public function dateProvider()
     {
         return [
             'no arguments' => [],
-            'low resolution, de-DE' => [
-                [
-                    'resolution' => BingPhoto::RESOLUTION_LOW,
-                    'locale' => 'de-DE'
-                ]
+            'yesterday' => [
+                ['date' => BingPhoto::YESTERDAY],
             ],
-            'high resolution, fr-FR' => [
-                [
-                    'resolution' => BingPhoto::RESOLUTION_HIGH,
-                    'locale' => 'fr-FR'
-                ]
+            'tomorrow' => [
+                ['date' => BingPhoto::TOMORROW],
             ],
-            'three last images' => [
-                [
-                    'n' => 3
-                ]
+            'three days ago' => [
+                ['date' => 3],
+            ]
+        ];
+    }
+
+    public function resolutionProvider()
+    {
+        return [
+            'no arguments' => [],
+            'low resolution' => [
+                ['resolution' => BingPhoto::RESOLUTION_LOW]
             ],
-            'yesterday\'s image' => [
-                [
-                    'n' => 1,
-                    'date' => BingPhoto::YESTERDAY
-                ]
-            ],
+            'high resolution' => [
+                ['resolution' => BingPhoto::RESOLUTION_HIGH]
+            ]
         ];
     }
 }
