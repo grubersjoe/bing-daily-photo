@@ -3,8 +3,8 @@
 /**
  * A simple class, which fetches Bing's image of the day with meta data
  */
-class BingPhoto {
-
+class BingPhoto
+{
     // Constants
     const TOMORROW = -1;
     const TODAY = 0;
@@ -27,13 +27,14 @@ class BingPhoto {
      * @param string $locale Localization string (en-US, de-DE, ...)
      * @param string $resolution Resolution of images(s)
      */
-    public function __construct($date = self::TODAY, $n = 1, $locale = 'en-US', $resolution = self::RESOLUTION_HIGH) {
-        $this->setArgs(array(
-            'date'       => $date,
-            'n'          => $n,
-            'locale'     => $locale,
+    public function __construct($date = self::TODAY, $n = 1, $locale = 'en-US', $resolution = self::RESOLUTION_HIGH)
+    {
+        $this->setArgs([
+            'date' => $date,
+            'n' => $n,
+            'locale' => $locale,
             'resolution' => $resolution
-        ));
+        ]);
 
         try {
             $this->fetchImages();
@@ -46,7 +47,8 @@ class BingPhoto {
      * Returns exactly one fetched image
      * @return array The image array with its URL and further meta data
      */
-    public function getImage() {
+    public function getImage()
+    {
         $image = $this->getImages(1);
         return $image[0];
     }
@@ -56,7 +58,8 @@ class BingPhoto {
      * @param int $n Number of images to return
      * @return array Image data
      */
-    public function getImages($n = 1) {
+    public function getImages($n = 1)
+    {
         $n = max($n, count($this->data));
         return array_slice($this->data, 0, $n);
     }
@@ -65,8 +68,9 @@ class BingPhoto {
      * Returns the class arguments
      * @return array Class arguments
      */
-    public function getArgs() {
-        $this->sanityCheck();
+    public function getArgs()
+    {
+        $this->sanitizeArgs();
         return $this->args;
     }
 
@@ -74,28 +78,30 @@ class BingPhoto {
      * Sets the class arguments
      * @param array $args
      */
-    public function setArgs($args = array()) {
-        $this->args = array_replace(array (
-            'date'       => self::TODAY,
-            'n'          => 1,
-            'locale'     => 'en-US',
+    public function setArgs($args = [])
+    {
+        $this->args = array_replace([
+            'date' => self::TODAY,
+            'n' => 1,
+            'locale' => 'en-US',
             'resolution' => self::RESOLUTION_HIGH
-        ), $args);
-        $this->sanityCheck();
+        ], $args);
+        $this->sanitizeArgs();
 
-		 try {
+        try {
             $this->fetchImages();
-        } catch (Exception $e) {
+        } catch
+        (Exception $e) {
             die($e->getMessage());
         }
     }
 
     /**
      * Performs some sanity checks
-     * @return array Validated arguments
      * @internal param array $args Class arguments
      */
-    private function sanityCheck() {
+    private function sanitizeArgs()
+    {
         if ($this->args['date'] < self::TOMORROW) {
             $this->args['date'] = self::TOMORROW;
         }
@@ -113,10 +119,11 @@ class BingPhoto {
     }
 
     /**
-	 * Fetches the image JSON data from Bing
+     * Fetches the image JSON data from Bing
      * @throws Exception
      */
-    private function fetchImages() {
+    private function fetchImages()
+    {
         // Constructing API url
         $url = self::BASE_URL . self::JSON_URL
             . '&idx=' . $this->args['date']
@@ -137,8 +144,9 @@ class BingPhoto {
      * @return array Associative data array
      * @throws Exception
      */
-    private function fetchJSON($url) {
-        $data  = json_decode(file_get_contents($url), true);
+    private function fetchJSON($url)
+    {
+        $data = json_decode(file_get_contents($url), true);
         $error = json_last_error();
         if ($data !== null && $error === JSON_ERROR_NONE) {
             return $data;
@@ -152,11 +160,12 @@ class BingPhoto {
      * @param array $images Array with image data
      * @return array Modified image data array
      */
-    private function setQuality($images) {
+    private function setQuality($images)
+    {
         foreach ($images as $i => $image) {
             $images[$i]['url'] = self::BASE_URL . str_replace(
-                self::RESOLUTION_HIGH, $this->args['resolution'], $image['url']
-            );
+                    self::RESOLUTION_HIGH, $this->args['resolution'], $image['url']
+                );
         }
 
         return $images;

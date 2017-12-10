@@ -1,64 +1,75 @@
 <?php
+
+use PHPUnit\Framework\TestCase;
+
 require('BingPhoto.php');
 
-class BingPhotoTest extends PHPUnit_Framework_TestCase {
+class BingPhotoTest extends TestCase
+{
 
-    protected $bp;
+    /** @var BingPhoto */
+    protected $bing;
 
-    protected function setUp() {
-        $this->bp = new BingPhoto();
+    protected function setUp()
+    {
+        $this->bing = new BingPhoto();
     }
 
     /**
      * @dataProvider argumentProvider
      * @param $args
      */
-    public function testCount($args = array()) {
-        $this->bp->setArgs($args);
+    public function testCount($args = [])
+    {
+        $this->bing->setArgs($args);
         $count = isset($args['n']) ? $args['n'] : 1;
-        $this->assertCount($count, $this->bp->getImages());
+        $this->assertCount($count, $this->bing->getImages());
     }
 
     /**
      * @dataProvider argumentProvider
      * @param $args
      */
-    public function testResolution($args = array()) {
-        $this->bp->setArgs($args);
-        foreach ($this->bp->getImages() as $image) {
+    public function testResolution($args = [])
+    {
+        $this->bing->setArgs($args);
+        foreach ($this->bing->getImages() as $image) {
             if (isset($args['resolution'])) {
                 list($resX, $resY) = getimagesize($image['url']);
                 $this->assertEquals($resX . 'x' . $resY, $args['resolution']);
+            } else {
+                $this->assertTrue(true);
             }
         }
     }
 
-    public function argumentProvider() {
-        return array(
-            'no arguments' => array(),
-            'low resolution, de-DE' => array(
-                array (
+    public function argumentProvider()
+    {
+        return [
+            'no arguments' => [],
+            'low resolution, de-DE' => [
+                [
                     'resolution' => BingPhoto::RESOLUTION_LOW,
                     'locale' => 'de-DE'
-                )
-            ),
-            'high resolution, fr-FR' => array(
-                array (
+                ]
+            ],
+            'high resolution, fr-FR' => [
+                [
                     'resolution' => BingPhoto::RESOLUTION_HIGH,
                     'locale' => 'fr-FR'
-                )
-            ),
-            'three last images' => array(
-                array (
+                ]
+            ],
+            'three last images' => [
+                [
                     'n' => 3
-                )
-            ),
-            'yesterday\'s image' => array(
-                array (
+                ]
+            ],
+            'yesterday\'s image' => [
+                [
                     'n' => 1,
                     'date' => BingPhoto::YESTERDAY
-                )
-            ),
-        );
+                ]
+            ],
+        ];
     }
 }
