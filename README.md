@@ -1,12 +1,23 @@
 # Bing Daily Photo
 
-BingPhoto is a simple PHP class which fetches Bing's image of the day with meta data.
+BingPhoto is a simple PHP class to fetch Bing's image of the day with meta data.
 
 ## Basic usage
 
 ```php
-$bing  = new BingPhoto();
+$bing = new BingPhoto();
 $image = $bing->getImage();
+
+// Example result ($image)
+[
+    [startdate] => '20160913'
+    [fullstartdate] => '201609130700'
+    [enddate] => '20160914'
+    [url] => 'http://www.bing.com/az/hprichbg/rb/Meteora_EN-US6763889417_1920x1080.jpg'
+    [urlbase] => '/az/hprichbg/rb/Meteora_EN-US6763889417'
+    [copyright] => 'Roussanou and other monasteries in Metéora, Greece (© Stian Rekdal/Nimia)'   
+    // ...
+]
 ```
 
 ## Parameters
@@ -24,13 +35,13 @@ The class has some optional parameters to control various options:
 
 ```php
 // Fetches two images of the day in high resolution from the American Bing portal
-$bing  = new BingPhoto(BingPhoto::YESTERDAY, 2);
+$bing = new BingPhoto(BingPhoto::YESTERDAY, 2);
 $images = $bing->getImages();
 ```
 
 ```php
 // Fetches three images of the day in low resolution, starting yesterday from the French Bing portal
-$bing  = new BingPhoto(BingPhoto::YESTERDAY, 3, 'fr-FR', BingPhoto::RESOLUTION_LOW);
+$bing = new BingPhoto(BingPhoto::YESTERDAY, 3, 'fr-FR', BingPhoto::RESOLUTION_LOW);
 foreach ($bing->getImages() as $image) {
     printf('<img src="%s">', $image['url']);
 }

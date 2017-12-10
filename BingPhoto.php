@@ -1,10 +1,11 @@
 <?php
 
 /**
- * A simple class, which fetches Bing's image of the day with meta data
+ * A simple class which fetches Bing's image of the day with meta data
  */
 class BingPhoto
 {
+
     // Constants
     const TOMORROW = -1;
     const TODAY = 0;
@@ -30,8 +31,8 @@ class BingPhoto
     public function __construct($date = self::TODAY, $n = 1, $locale = 'en-US', $resolution = self::RESOLUTION_HIGH)
     {
         $this->setArgs([
-            'date' => $date,
             'n' => $n,
+            'date' => $date,
             'locale' => $locale,
             'resolution' => $resolution
         ]);
@@ -39,7 +40,7 @@ class BingPhoto
         try {
             $this->fetchImages();
         } catch (Exception $e) {
-            die($e->getMessage());
+            exit($e->getMessage());
         }
     }
 
@@ -49,8 +50,9 @@ class BingPhoto
      */
     public function getImage()
     {
-        $image = $this->getImages(1);
-        return $image[0];
+        $images = $this->getImages(1);
+
+        return $images[0];
     }
 
     /**
@@ -61,6 +63,7 @@ class BingPhoto
     public function getImages($n = 1)
     {
         $n = max($n, count($this->data));
+
         return array_slice($this->data, 0, $n);
     }
 
@@ -70,7 +73,6 @@ class BingPhoto
      */
     public function getArgs()
     {
-        $this->sanitizeArgs();
         return $this->args;
     }
 
@@ -80,40 +82,32 @@ class BingPhoto
      */
     public function setArgs($args = [])
     {
-        $this->args = array_replace([
-            'date' => self::TODAY,
+        $defaults = [
             'n' => 1,
             'locale' => 'en-US',
+            'date' => self::TODAY,
             'resolution' => self::RESOLUTION_HIGH
-        ], $args);
-        $this->sanitizeArgs();
+        ];
+        $this->args = array_replace($defaults, $args);
+
+        $this->validateArgs();
 
         try {
             $this->fetchImages();
-        } catch
-        (Exception $e) {
-            die($e->getMessage());
+        } catch (Exception $e) {
+            exit($e->getMessage());
         }
     }
 
     /**
-     * Performs some sanity checks
-     * @internal param array $args Class arguments
+     * Perform some sanity checks
      */
-    private function sanitizeArgs()
+    private function validateArgs()
     {
-        if ($this->args['date'] < self::TOMORROW) {
-            $this->args['date'] = self::TOMORROW;
-        }
+        $this->args['date'] = max($this->args['date'], self::TOMORROW);
+        $this->args['n'] = min(max($this->args['n'], 1), self::LIMIT_N);
 
-        if ($this->args['n'] > self::LIMIT_N) {
-            $this->args['n'] = self::LIMIT_N;
-        }
-        if ($this->args['n'] < 1) {
-            $this->args['n'] = 1;
-        }
-
-        if (false === in_array($this->args['resolution'], array(self::RESOLUTION_LOW, self::RESOLUTION_HIGH))) {
+        if (false === in_array($this->args['resolution'], [self::RESOLUTION_LOW, self::RESOLUTION_HIGH])) {
             $this->args['resolution'] = self::RESOLUTION_HIGH;
         }
     }
@@ -124,11 +118,9 @@ class BingPhoto
      */
     private function fetchImages()
     {
-        // Constructing API url
-        $url = self::BASE_URL . self::JSON_URL
-            . '&idx=' . $this->args['date']
-            . '&n=' . $this->args['n']
-            . '&mkt=' . $this->args['locale'];
+        // Constructing API URL
+        $fstring = self::BASE_URL . self::JSON_URL . '&idx=%s&n=%s&mkt=%s';
+        $url = sprintf($fstring, $this->args['date'], $this->args['n'], $this->args['locale']);
 
         try {
             $this->data = $this->fetchJSON($url);
@@ -148,6 +140,7 @@ class BingPhoto
     {
         $data = json_decode(file_get_contents($url), true);
         $error = json_last_error();
+
         if ($data !== null && $error === JSON_ERROR_NONE) {
             return $data;
         } else {
@@ -163,9 +156,8 @@ class BingPhoto
     private function setQuality($images)
     {
         foreach ($images as $i => $image) {
-            $images[$i]['url'] = self::BASE_URL . str_replace(
-                    self::RESOLUTION_HIGH, $this->args['resolution'], $image['url']
-                );
+            $url = str_replace(self::RESOLUTION_HIGH, $this->args['resolution'], $image['url']);
+            $images[$i]['url'] = self::BASE_URL . $url;
         }
 
         return $images;
