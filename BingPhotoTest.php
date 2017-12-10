@@ -1,19 +1,10 @@
 <?php
+use PHPUnit\Framework\TestCase;
+
 require('BingPhoto.php');
 
-class BingPhotoTest extends PHPUnit_Framework_TestCase
+class BingPhotoTest extends TestCase
 {
-
-    /**
-     * @var BingPhoto
-     */
-    protected $bing;
-
-    protected function setUp()
-    {
-        $this->bing = new BingPhoto();
-    }
-
     /**
      * @dataProvider invalidArgumentProvider
      * @param $expected
@@ -21,8 +12,8 @@ class BingPhotoTest extends PHPUnit_Framework_TestCase
      */
     public function testArgsValidation($expected, $args = [])
     {
-        $this->bing->setArgs($args);
-        $actual = $this->bing->getArgs();
+        $bingPhoto = new BingPhoto($args);
+        $actual = $bingPhoto->getArgs();
 
         foreach ($expected as $key => $expectedArg) {
             $this->assertEquals($expectedArg, $actual[$key]);
@@ -35,9 +26,9 @@ class BingPhotoTest extends PHPUnit_Framework_TestCase
      */
     public function testCount($args = [])
     {
-        $this->bing->setArgs($args);
-        $count = isset($args['n']) ? $args['n'] : 1;
-        $this->assertCount($count, $this->bing->getImages());
+        $bingPhoto = new BingPhoto($args);
+        $count = $args['n'] ?? 1;
+        $this->assertCount($count, $bingPhoto->getImages());
     }
 
     /**
@@ -46,11 +37,13 @@ class BingPhotoTest extends PHPUnit_Framework_TestCase
      */
     public function testResolution($args = [])
     {
-        $this->bing->setArgs($args);
-        foreach ($this->bing->getImages() as $image) {
+        $bingPhoto = new BingPhoto($args);
+        foreach ($bingPhoto->getImages() as $image) {
             if (isset($args['resolution'])) {
                 list($width, $height) = getimagesize($image['url']);
                 $this->assertEquals($width . 'x' . $height, $args['resolution']);
+            } else {
+                $this->assertTrue(true);
             }
         }
     }

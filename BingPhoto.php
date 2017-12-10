@@ -23,19 +23,15 @@ class BingPhoto
 
     /**
      * Constructor: Fetches image(s) of the day from Bing
-     * @param int $date Date offset. 0 equals today, 1 = yesterday, and so on.
-     * @param int $n Number of images / days
-     * @param string $locale Localization string (en-US, de-DE, ...)
-     * @param string $resolution Resolution of images(s)
+     * @param array $args Options array
+     *      $args['n'] int $n Number of images / days
+     *      $args['date'] int $date Date offset. 0 equals today, 1 = yesterday, and so on.
+     *      $args['locale'] string $locale Localization string (en-US, de-DE, ...)
+     *      $args['resolution'] string $resolution Resolution of images(s)
      */
-    public function __construct($date = self::TODAY, $n = 1, $locale = 'en-US', $resolution = self::RESOLUTION_HIGH)
+    public function __construct(array $args = [])
     {
-        $this->setArgs([
-            'n' => $n,
-            'date' => $date,
-            'locale' => $locale,
-            'resolution' => $resolution
-        ]);
+        $this->setArgs($args);
 
         try {
             $this->fetchImages();
@@ -80,7 +76,7 @@ class BingPhoto
      * Sets the class arguments
      * @param array $args
      */
-    public function setArgs($args = [])
+    private function setArgs($args)
     {
         $defaults = [
             'n' => 1,
@@ -88,9 +84,9 @@ class BingPhoto
             'date' => self::TODAY,
             'resolution' => self::RESOLUTION_HIGH
         ];
-        $this->args = array_replace($defaults, $args);
 
-        $this->validateArgs();
+        $args = array_replace($defaults, $args);
+        $this->args = $this->sanitizeArgs($args);
 
         try {
             $this->fetchImages();
@@ -102,14 +98,16 @@ class BingPhoto
     /**
      * Perform some sanity checks
      */
-    private function validateArgs()
+    private function sanitizeArgs(array $args)
     {
-        $this->args['date'] = max($this->args['date'], self::TOMORROW);
-        $this->args['n'] = min(max($this->args['n'], 1), self::LIMIT_N);
+        $args['date'] = max($args['date'], self::TOMORROW);
+        $args['n'] = min(max($args['n'], 1), self::LIMIT_N);
 
-        if (false === in_array($this->args['resolution'], [self::RESOLUTION_LOW, self::RESOLUTION_HIGH])) {
-            $this->args['resolution'] = self::RESOLUTION_HIGH;
+        if (false === in_array($args['resolution'], [self::RESOLUTION_LOW, self::RESOLUTION_HIGH])) {
+            $args['resolution'] = self::RESOLUTION_HIGH;
         }
+
+        return $args;
     }
 
     /**
