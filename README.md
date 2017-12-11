@@ -28,13 +28,13 @@ The class has some optional parameters to control various options:
 |-------------|-------------------|---------------------|------------|
 | $date|Date of photo|`BingPhoto::DATE_TODAY` |`BingPhoto::DATE_YESTERDAY`, `BingPhoto::DATE_TODAY`, `BingPhoto::DATE_TOMORROW`, `any integer >= -1`|
 | $n|Number of photos to fetch, going from date backwards|1|1 - 8|
-| $locale     |Locale code|en-US|Whatever language Bing supports|
+| $locale     |Locale code|`Locale::getDefault()`|Whatever language Bing supports|
 | $resolution |Image resolution|`BingPhoto::RESOLUTION_HIGH`|`BingPhoto::RESOLUTION_LOW`, `BingPhoto::RESOLUTION_HIGH`|
 
 ## Examples
 
 ```php
-// Fetches two images of the day in high resolution (default) from the en-US (default) Bing portal
+// Fetches two images of the day starting yesterday from Bing
 $bing = new BingPhoto([
     'n' => 2,
     'date' => BingPhoto::YESTERDAY
