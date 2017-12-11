@@ -33,19 +33,6 @@ class BingPhotoTest extends TestCase
     }
 
     /**
-     * @dataProvider dateProvider
-     * @param $args
-     */
-    public function testDate($args = [])
-    {
-        $bingPhoto = new BingPhoto($args);
-        $image = $bingPhoto->getImage();
-        $expected = date('Ymd', strtotime(sprintf('-%d days', $args['date'] ?? BingPhoto::TODAY)));
-        $this->assertEquals($expected, $image['startdate']);
-
-    }
-
-    /**
      * @dataProvider resolutionProvider
      * @param $args
      */
@@ -108,22 +95,6 @@ class BingPhotoTest extends TestCase
             'nine images' => [
                 ['n' => 9],
             ],
-        ];
-    }
-
-    public function dateProvider()
-    {
-        return [
-            'no arguments' => [],
-            'yesterday' => [
-                ['date' => BingPhoto::YESTERDAY],
-            ],
-            'tomorrow' => [
-                ['date' => BingPhoto::TOMORROW],
-            ],
-            'three days ago' => [
-                ['date' => 3],
-            ]
         ];
     }
 
