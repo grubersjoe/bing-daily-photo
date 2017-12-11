@@ -32,16 +32,10 @@ class BingPhoto
     public function __construct(array $args = [])
     {
         $this->setArgs($args);
-
-        try {
-            $this->fetchImages();
-        } catch (Exception $e) {
-            exit($e->getMessage());
-        }
     }
 
     /**
-     * Returns exactly one fetched image
+     * Returns the first fetched image
      * @return array The image array with its URL and further meta data
      */
     public function getImage()
@@ -80,7 +74,7 @@ class BingPhoto
     {
         $defaults = [
             'n' => 1,
-            'locale' => 'en-US',
+            'locale' => str_replace('_', '-', Locale::getDefault()),
             'date' => self::TODAY,
             'resolution' => self::RESOLUTION_HIGH
         ];
@@ -96,7 +90,7 @@ class BingPhoto
     }
 
     /**
-     * Perform some sanity checks
+     * Performs sanity checks
      * @param array $args Arguments
      * @return array Sanitized arguments
      */
@@ -117,9 +111,8 @@ class BingPhoto
      */
     private function fetchImages()
     {
-        // Constructing API URL
-        $fstring = self::BASE_URL . self::JSON_URL . '&idx=%s&n=%s&mkt=%s';
-        $url = sprintf($fstring, $this->args['date'], $this->args['n'], $this->args['locale']);
+        $format = self::BASE_URL . self::JSON_URL . '&idx=%s&n=%s&mkt=%s';
+        $url = sprintf($format, $this->args['date'], $this->args['n'], $this->args['locale']);
 
         try {
             $this->data = $this->fetchJSON($url);
@@ -130,7 +123,7 @@ class BingPhoto
     }
 
     /**
-     * Fetches an associative array from given JSON url
+     * Fetches an associative array from given JSON URL
      * @param  string $url JSON URL
      * @return array Associative data array
      * @throws Exception
