@@ -34,14 +34,36 @@ The class has some optional parameters to control various options:
 ## Examples
 
 ```php
-// Fetches two images of the day in high resolution from the American Bing portal
-$bing = new BingPhoto(BingPhoto::YESTERDAY, 2);
-$images = $bing->getImages();
+// Fetches two images of the day in high resolution (default) from the en-US (default) Bing portal
+$bing = new BingPhoto([
+    'n' => 2,
+    'date' => BingPhoto::YESTERDAY
+]);
+
+foreach ($bing->getImages() as $image) {
+    printf('<img src="%s">', $image['url']);
+}
 ```
 
 ```php
-// Fetches three images of the day in low resolution, starting yesterday from the French Bing portal
-$bing = new BingPhoto(BingPhoto::YESTERDAY, 3, 'fr-FR', BingPhoto::RESOLUTION_LOW);
+// Fetches the current image of the day in low resolution from the French Bing portal
+$bing = new BingPhoto([
+    'locale' => 'fr-FR',
+    'resolution' => BingPhoto::RESOLUTION_LOW,
+]);
+
+printf('<img src="%s">', $bing->getImage()['url']);
+```
+
+```php
+// Fetches three images of the day in high resolution from the German Bing portal, starting yesterday
+$bing = new BingPhoto([
+    'n' => 3,
+    'date' => BingPhoto::YESTERDAY,
+    'locale' => 'de-DE',
+    'resolution' => BingPhoto::RESOLUTION_HIGH,
+]);
+
 foreach ($bing->getImages() as $image) {
     printf('<img src="%s">', $image['url']);
 }
