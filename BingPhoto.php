@@ -15,11 +15,11 @@ class BingPhoto
     const RESOLUTION_HIGH = '1920x1080';
 
     // API
-    const BASE_URL = 'http://www.bing.com';
+    const BASE_URL = 'https://www.bing.com';
     const JSON_URL = '/HPImageArchive.aspx?format=js';
 
     private $args;
-    private $data;
+    private $images = null;
 
     /**
      * Constructor: Fetches image(s) of the day from Bing
@@ -52,9 +52,9 @@ class BingPhoto
      */
     public function getImages($n = 1)
     {
-        $n = max($n, count($this->data));
+        $n = max($n, count($this->images));
 
-        return array_slice($this->data, 0, $n);
+        return array_slice($this->images, 0, $n);
     }
 
     /**
@@ -85,6 +85,7 @@ class BingPhoto
         try {
             $this->fetchImages();
         } catch (Exception $e) {
+            error_log($e->getMessage());
             exit($e->getMessage());
         }
     }
@@ -114,12 +115,8 @@ class BingPhoto
         $format = self::BASE_URL . self::JSON_URL . '&idx=%s&n=%s&mkt=%s';
         $url = sprintf($format, $this->args['date'], $this->args['n'], $this->args['locale']);
 
-        try {
-            $this->data = $this->fetchJSON($url);
-            $this->data = $this->setQuality($this->data['images']);
-        } catch (Exception $e) {
-            throw $e;
-        }
+        $this->images = $this->fetchImagesFromApi($url);
+        $this->setQuality();
     }
 
     /**
@@ -128,30 +125,31 @@ class BingPhoto
      * @return array Associative data array
      * @throws Exception
      */
-    private function fetchJSON($url)
+    private function fetchImagesFromApi($url)
     {
         $data = json_decode(file_get_contents($url), true);
         $error = json_last_error();
 
-        if ($data !== null && $error === JSON_ERROR_NONE) {
-            return $data;
+        if ($error === JSON_ERROR_NONE && is_array($data['images'])) {
+            $images = $data['images'];
+            foreach ($images as $key => $image) {
+                $images[$key]['url'] = self::BASE_URL . $image['url'];
+            }
         } else {
             throw new Exception('Unable to retrieve JSON data: ' . $error);
         }
+
+        return $images;
     }
 
     /**
      * Sets the image resolution
-     * @param array $images Array with image data
-     * @return array Modified image data array
      */
-    private function setQuality($images)
+    private function setQuality()
     {
-        foreach ($images as $i => $image) {
+        foreach ($this->images as $key => $image) {
             $url = str_replace(self::RESOLUTION_HIGH, $this->args['resolution'], $image['url']);
-            $images[$i]['url'] = self::BASE_URL . $url;
+            $this->images[$key]['url'] = $url;
         }
-
-        return $images;
     }
 }
