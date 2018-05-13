@@ -20,6 +20,7 @@ class BingPhoto
 
     private $args;
     private $images = null;
+    private $cachedImages = null;
 
     /**
      * Constructor: Fetches image(s) of the day from Bing
@@ -66,6 +67,14 @@ class BingPhoto
         $n = max($n, count($this->images));
 
         return array_slice($this->images, 0, $n);
+    }
+
+    /**
+     * Returns the list of locally cached images
+     * @return array List of absolute paths to cached images
+     */
+    public function getCachedImages() {
+        return $this->cachedImages;
     }
 
     /**
@@ -122,13 +131,11 @@ class BingPhoto
 
     /**
      * Caches the image
-     * @return array
      */
     private function cacheImages()
     {
         // TODO: read runfile if present
-
-        $resultList = [];
+        $this->cachedImages = [];
         $fetchList = [];
 
         $baseDate = (new DateTime())->modify(sprintf('-%d day', $this->args['date'] - 1));
@@ -145,7 +152,7 @@ class BingPhoto
                 if (in_array($image->getBasename('.jpg'), array_keys($fetchList))) {
                     // file already present - no need to download it again
                     unset($fetchList[$image->getBasename('.jpg')]);
-                    $resultList[] = $image->getRealPath();
+                    $this->cachedImages[] = $image->getRealPath();
                 } else {
                     // cache duration expired - remove the file
                     unlink($image->getRealPath());
@@ -159,14 +166,12 @@ class BingPhoto
             if (in_array($image['enddate'], array_keys($fetchList))) {
                 $fileName = sprintf('%s/%s.jpg', $this->args['cacheDir'], $image['enddate']);
                 if (file_put_contents($fileName, file_get_contents($image['url']))) {
-                    $resultList[] = $this->args['cacheDir'] . '/' . $fileName;
+                    $this->cachedImages[] = $fileName;
                 }
             }
         }
 
         // TODO: write runfile
-
-        return $resultList;
     }
 
     /**
@@ -193,6 +198,13 @@ class BingPhoto
         return $images;
     }
 
+    /**
+     * Build the API URL
+     * @param int $date The date offset
+     * @param int $n Number of images to fetch
+     * @param int $locale Locale code
+     * @return string The URL to the JSON endpoint
+     */
     private function buildApiUrl($date, $n, $locale)
     {
         return sprintf(self::BASE_URL . self::JSON_URL . '&idx=%d&n=%d&mkt=%s', $date, $n, $locale);
