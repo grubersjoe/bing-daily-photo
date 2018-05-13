@@ -70,7 +70,7 @@ class BingPhoto
      * Sets the class arguments
      * @param array $args
      */
-    private function setArgs($args)
+    private function setArgs(array $args)
     {
         $defaults = [
             'n' => 1,
