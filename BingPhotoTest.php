@@ -10,6 +10,7 @@ class BingPhotoTest extends TestCase
      * @dataProvider invalidArgumentProvider
      * @param $expected
      * @param $args
+     * @throws Exception
      */
     public function testArgsValidation($expected, $args = [])
     {
@@ -24,6 +25,7 @@ class BingPhotoTest extends TestCase
     /**
      * @dataProvider countProvider
      * @param $args
+     * @throws Exception
      */
     public function testCount($args = [])
     {
@@ -33,15 +35,16 @@ class BingPhotoTest extends TestCase
     }
 
     /**
-     * @dataProvider resolutionProvider
+     * @dataProvider qualityProvider
      * @param $args
+     * @throws Exception
      */
     public function testResolution($args = [])
     {
         $bingPhoto = new BingPhoto($args);
         foreach ($bingPhoto->getImages() as $image) {
             list($width, $height) = getimagesize($image['url']);
-            $this->assertEquals($width . 'x' . $height, $args['resolution'] ?? BingPhoto::RESOLUTION_HIGH);
+            $this->assertEquals($width . 'x' . $height, $args['quality'] ?? BingPhoto::QUALITY_HIGH);
         }
     }
 
@@ -64,17 +67,17 @@ class BingPhotoTest extends TestCase
                 ['n' => 1],
                 ['n' => -2],
             ],
-            'unavailable resolution' => [
-                ['resolution' => '1920x1080'],
-                ['resolution' => '800x600'],
+            'unavailable quality' => [
+                ['quality' => '1920x1080'],
+                ['quality' => '800x600'],
             ],
-            'invalid resolution' => [
-                ['resolution' => '1920x1080'],
-                ['resolution' => '😳'],
+            'invalid quality' => [
+                ['quality' => '1920x1080'],
+                ['quality' => '😳'],
             ],
-            'empty resolution' => [
-                ['resolution' => '1920x1080'],
-                ['resolution' => null],
+            'empty quality' => [
+                ['quality' => '1920x1080'],
+                ['quality' => null],
             ],
         ];
     }
@@ -98,16 +101,18 @@ class BingPhotoTest extends TestCase
         ];
     }
 
-    public function resolutionProvider()
+    public function qualityProvider()
     {
         return [
             'no arguments' => [],
-            'low resolution' => [
-                ['resolution' => BingPhoto::RESOLUTION_LOW]
+            'low quality' => [
+                ['quality' => BingPhoto::QUALITY_LOW]
             ],
-            'high resolution' => [
-                ['resolution' => BingPhoto::RESOLUTION_HIGH]
+            'high quality' => [
+                ['quality' => BingPhoto::QUALITY_HIGH]
             ]
         ];
     }
+
+    // TODO: write tests for caching feature
 }

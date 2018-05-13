@@ -11,8 +11,8 @@ class BingPhoto
     const TODAY = 0;
     const YESTERDAY = 1;
     const LIMIT_N = 8; // Bing's API returns at most 8 images
-    const RESOLUTION_LOW = '1366x768';
-    const RESOLUTION_HIGH = '1920x1080';
+    const QUALITY_LOW = '1366x768';
+    const QUALITY_HIGH = '1920x1080';
 
     // API
     const BASE_URL = 'https://www.bing.com';
@@ -24,14 +24,25 @@ class BingPhoto
     /**
      * Constructor: Fetches image(s) of the day from Bing
      * @param array $args Options array
-     *      $args['n'] int $n Number of images / days
-     *      $args['date'] int $date Date offset. 0 equals today, 1 = yesterday, and so on.
-     *      $args['locale'] string $locale Localization string (en-US, de-DE, ...)
-     *      $args['resolution'] string $resolution Resolution of images(s)
+     *      $args['n'] int Number of images / days
+     *      $args['date'] intDate offset. 0 equals today, 1 = yesterday, and so on.
+     *      $args['locale'] string Localization string (en-US, de-DE, ...)
+     *      $args['quality'] string Resolution of images(s)
+     *      $args['cacheDir'] string Cache (download) images in this directory
+     * @throws Exception
      */
     public function __construct(array $args = [])
     {
         $this->setArgs($args);
+
+        $cacheDir = $this->args['cacheDir'];
+        if (empty($cacheDir)) {
+            $this->fetchImages();
+        } elseif (file_exists($cacheDir)) {
+            $this->cacheImages();
+        } else {
+            throw new Exception(sprintf('Given cache directory %s does not exist', $cacheDir));
+        }
     }
 
     /**
@@ -72,22 +83,15 @@ class BingPhoto
      */
     private function setArgs(array $args)
     {
-        $defaults = [
+        $defaultArgs = [
             'n' => 1,
             'locale' => str_replace('_', '-', Locale::getDefault()),
             'date' => self::TODAY,
-            'resolution' => self::RESOLUTION_HIGH
+            'quality' => self::QUALITY_HIGH,
+            'cacheDir' => false,
         ];
-
-        $args = array_replace($defaults, $args);
+        $args = array_replace($defaultArgs, $args);
         $this->args = $this->sanitizeArgs($args);
-
-        try {
-            $this->fetchImages();
-        } catch (Exception $e) {
-            error_log($e->getMessage());
-            exit($e->getMessage());
-        }
     }
 
     /**
@@ -99,8 +103,8 @@ class BingPhoto
     {
         $args['date'] = max($args['date'], self::TOMORROW);
         $args['n'] = min(max($args['n'], 1), self::LIMIT_N);
-        if (!in_array($args['resolution'], [self::RESOLUTION_HIGH, self::RESOLUTION_LOW])) {
-            $args['resolution'] = self::RESOLUTION_HIGH;
+        if (!in_array($args['quality'], [self::QUALITY_HIGH, self::QUALITY_LOW])) {
+            $args['quality'] = self::QUALITY_HIGH;
         }
 
         return $args;
@@ -108,22 +112,67 @@ class BingPhoto
 
     /**
      * Fetches the image JSON data from Bing
-     * @throws Exception
      */
     private function fetchImages()
     {
-        $format = self::BASE_URL . self::JSON_URL . '&idx=%s&n=%s&mkt=%s';
-        $url = sprintf($format, $this->args['date'], $this->args['n'], $this->args['locale']);
-
+        $url = $this->buildApiUrl($this->args['date'], $this->args['n'], $this->args['locale']);
         $this->images = $this->fetchImagesFromApi($url);
         $this->setQuality();
+    }
+
+    /**
+     * Caches the image
+     * @return array
+     */
+    private function cacheImages()
+    {
+        // TODO: read runfile if present
+
+        $resultList = [];
+        $fetchList = [];
+
+        $baseDate = (new DateTime())->modify(sprintf('-%d day', $this->args['date'] - 1));
+        for ($i = 0; $i < $this->args['n']; $i++) {
+            $date = $baseDate->modify('-1 day')->format('Ymd');
+            $fetchList[$date] = true;
+        }
+
+        // 1. check which images are already present
+        $dirIterator = new DirectoryIterator($this->args['cacheDir']);
+        foreach ($dirIterator as $image) {
+            if ($image->isFile() && $image->getExtension() === 'jpg') {
+                // TODO: fetch anyway, if config has changed (runfile)
+                if (in_array($image->getBasename('.jpg'), array_keys($fetchList))) {
+                    // file already present - no need to download it again
+                    unset($fetchList[$image->getBasename('.jpg')]);
+                    $resultList[] = $image->getRealPath();
+                } else {
+                    // cache duration expired - remove the file
+                    unlink($image->getRealPath());
+                }
+            }
+        }
+
+        // 2. download missing ones
+        $this->fetchImages();
+        foreach ($this->images as $image) {
+            if (in_array($image['enddate'], array_keys($fetchList))) {
+                $fileName = sprintf('%s/%s.jpg', $this->args['cacheDir'], $image['enddate']);
+                if (file_put_contents($fileName, file_get_contents($image['url']))) {
+                    $resultList[] = $this->args['cacheDir'] . '/' . $fileName;
+                }
+            }
+        }
+
+        // TODO: write runfile
+
+        return $resultList;
     }
 
     /**
      * Fetches an associative array from given JSON URL
      * @param  string $url JSON URL
      * @return array Associative data array
-     * @throws Exception
      */
     private function fetchImagesFromApi($url)
     {
@@ -136,19 +185,26 @@ class BingPhoto
                 $images[$key]['url'] = self::BASE_URL . $image['url'];
             }
         } else {
-            throw new Exception('Unable to retrieve JSON data: ' . $error);
+            $msg = 'Unable to retrieve JSON data: ' . $error;
+            error_log($msg);
+            exit($msg);
         }
 
         return $images;
     }
 
+    private function buildApiUrl($date, $n, $locale)
+    {
+        return sprintf(self::BASE_URL . self::JSON_URL . '&idx=%d&n=%d&mkt=%s', $date, $n, $locale);
+    }
+
     /**
-     * Sets the image resolution
+     * Sets the image quality
      */
     private function setQuality()
     {
         foreach ($this->images as $key => $image) {
-            $url = str_replace(self::RESOLUTION_HIGH, $this->args['resolution'], $image['url']);
+            $url = str_replace(self::QUALITY_HIGH, $this->args['quality'], $image['url']);
             $this->images[$key]['url'] = $url;
         }
     }
