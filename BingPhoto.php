@@ -27,11 +27,11 @@ class BingPhoto
     /**
      * Constructor: Fetches image(s) of the day from Bing
      * @param array $args Options array
-     *      $args['n'] int Number of images / days
+     *      $args['cacheDir'] string Cache (download) images in this directory
      *      $args['date'] intDate offset. 0 equals today, 1 = yesterday, and so on.
      *      $args['locale'] string Localization string (en-US, de-DE, ...)
+     *      $args['n'] int Number of images / days
      *      $args['quality'] string Resolution of images(s)
-     *      $args['cacheDir'] string Cache (download) images in this directory
      * @throws Exception
      */
     public function __construct(array $args = [])
@@ -130,7 +130,8 @@ class BingPhoto
      */
     private function fetchImagesMetadata()
     {
-        $url = $this->buildApiUrl($this->args['date'], $this->args['n'], $this->args['locale']);
+        $url = sprintf(self::BASE_URL . self::JSON_URL . '&idx=%d&n=%d&mkt=%s',
+            $this->args['date'], $this->args['n'], $this->args['locale']);
         $data = json_decode(file_get_contents($url), true);
         $error = json_last_error();
 
@@ -232,18 +233,6 @@ class BingPhoto
         } else {
             return null;
         }
-    }
-
-    /**
-     * Build the API URL
-     * @param int $date The date offset
-     * @param int $n Number of images to fetch
-     * @param int $locale Locale code
-     * @return string The URL to the JSON endpoint
-     */
-    private function buildApiUrl($date, $n, $locale)
-    {
-        return sprintf(self::BASE_URL . self::JSON_URL . '&idx=%d&n=%d&mkt=%s', $date, $n, $locale);
     }
 
     /**
