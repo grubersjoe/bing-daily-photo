@@ -98,11 +98,11 @@ class BingPhoto
     private function setArgs(array $args)
     {
         $defaultArgs = [
-            'n' => 1,
-            'locale' => str_replace('_', '-', Locale::getDefault()),
-            'date' => self::TODAY,
-            'quality' => self::QUALITY_HIGH,
             'cacheDir' => false,
+            'date' => self::TODAY,
+            'locale' => str_replace('_', '-', Locale::getDefault()),
+            'n' => 1,
+            'quality' => self::QUALITY_HIGH,
         ];
         $args = array_replace($defaultArgs, $args);
         $this->args = $this->sanitizeArgs($args);
