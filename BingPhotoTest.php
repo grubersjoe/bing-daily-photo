@@ -85,7 +85,9 @@ class BingPhotoTest extends TestCase
     public function countProvider()
     {
         return [
-            'one image' => [],
+            'one image' => [
+                []
+            ],
             'one image explicitly' => [
                 ['n' => 1],
             ],
@@ -104,7 +106,9 @@ class BingPhotoTest extends TestCase
     public function qualityProvider()
     {
         return [
-            'no arguments' => [],
+            'no arguments' => [
+                []
+            ],
             'low quality' => [
                 ['quality' => BingPhoto::QUALITY_LOW]
             ],
