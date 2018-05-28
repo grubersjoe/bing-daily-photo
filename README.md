@@ -26,7 +26,7 @@ $image = $bing->getImage();
 
 The class has some optional parameters to control various options:
 
-**Breaking change: the parameter `resolution` was renamed to `quality`. See also the constants `BingPhoto::QUALITY_LOW` and `BingPhoto::QUALITY_HIGHT`.**
+Breaking change: the parameter `resolution` was renamed to `quality`. See also the constants `BingPhoto::QUALITY_LOW` and `BingPhoto::QUALITY_HIGHT`.
 
 | Parameter   |Description        |Default              |Valid values|
 |-------------|-------------------|---------------------|------------|
