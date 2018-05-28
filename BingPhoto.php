@@ -14,13 +14,15 @@ class BingPhoto
     const QUALITY_LOW = '1366x768';
     const QUALITY_HIGH = '1920x1080';
 
+    const RUNFILE_NAME = '.lastrun';
+
     // API
     const BASE_URL = 'https://www.bing.com';
     const JSON_URL = '/HPImageArchive.aspx?format=js';
 
     private $args;
-    private $images = null;
-    private $cachedImages = null;
+    private $images = [];
+    private $cachedImages = [];
 
     /**
      * Constructor: Fetches image(s) of the day from Bing
@@ -35,14 +37,16 @@ class BingPhoto
     public function __construct(array $args = [])
     {
         $this->setArgs($args);
+        $this->fetchImagesMetadata();
 
+        // Caching
         $cacheDir = $this->args['cacheDir'];
-        if (empty($cacheDir)) {
-            $this->fetchImages();
-        } elseif (file_exists($cacheDir)) {
-            $this->cacheImages();
-        } else {
-            throw new Exception(sprintf('Given cache directory %s does not exist', $cacheDir));
+        if (!empty($cacheDir)) {
+            if (file_exists($cacheDir)) {
+                $this->cacheImages();
+            } else {
+                throw new Exception(sprintf('Given cache directory %s does not exist', $cacheDir));
+            }
         }
     }
 
@@ -73,7 +77,8 @@ class BingPhoto
      * Returns the list of locally cached images
      * @return array List of absolute paths to cached images
      */
-    public function getCachedImages() {
+    public function getCachedImages()
+    {
         return $this->cachedImages;
     }
 
@@ -120,82 +125,115 @@ class BingPhoto
     }
 
     /**
-     * Fetches the image JSON data from Bing
+     * Fetches the image meta data from Bing (JSON)
+     * @throws Exception
      */
-    private function fetchImages()
+    private function fetchImagesMetadata()
     {
         $url = $this->buildApiUrl($this->args['date'], $this->args['n'], $this->args['locale']);
-        $this->images = $this->fetchImagesFromApi($url);
-        $this->setQuality();
+        $data = json_decode(file_get_contents($url), true);
+        $error = json_last_error();
+
+        if ($error === JSON_ERROR_NONE && is_array($data['images'])) {
+            $this->images = $data['images'];
+            $this->setAbsoluteUrl();
+            $this->setQuality();
+        } else {
+            throw new Exception('Unable to retrieve JSON data: ' . $error);
+        }
     }
 
     /**
-     * Caches the image
+     * Caches the images on local disk
      */
     private function cacheImages()
     {
-        // TODO: read runfile if present
-        $this->cachedImages = [];
+        $prevArgs = $this->readRunfile();
         $fetchList = [];
 
+        // Build a list of to be cached dates
         $baseDate = (new DateTime())->modify(sprintf('-%d day', $this->args['date'] - 1));
         for ($i = 0; $i < $this->args['n']; $i++) {
             $date = $baseDate->modify('-1 day')->format('Ymd');
             $fetchList[$date] = true;
         }
 
-        // 1. check which images are already present
+        // Check current cache
         $dirIterator = new DirectoryIterator($this->args['cacheDir']);
         foreach ($dirIterator as $image) {
             if ($image->isFile() && $image->getExtension() === 'jpg') {
-                // TODO: fetch anyway, if config has changed (runfile)
-                if (in_array($image->getBasename('.jpg'), array_keys($fetchList))) {
-                    // file already present - no need to download it again
+                $imageShouldBeCached = in_array($image->getBasename('.jpg'), array_keys($fetchList));
+                if ($prevArgs === $this->args && $imageShouldBeCached) {
+                    // Image already present - no need to download it again
+                    printf('already present - skipping %s' . PHP_EOL, $image->getFilename());
                     unset($fetchList[$image->getBasename('.jpg')]);
                     $this->cachedImages[] = $image->getRealPath();
                 } else {
-                    // cache duration expired - remove the file
+                    // Config changed or cache duration expired - remove the file
+                    printf('removing %s' . PHP_EOL, $image->getFilename());
                     unlink($image->getRealPath());
                 }
             }
         }
 
-        // 2. download missing ones
-        $this->fetchImages();
-        foreach ($this->images as $image) {
-            if (in_array($image['enddate'], array_keys($fetchList))) {
-                $fileName = sprintf('%s/%s.jpg', $this->args['cacheDir'], $image['enddate']);
-                if (file_put_contents($fileName, file_get_contents($image['url']))) {
-                    $this->cachedImages[] = $fileName;
-                }
-            }
-        }
+        $this->fetchImageFiles($fetchList);
 
-        // TODO: write runfile
+        if ($prevArgs !== $this->args) {
+            $this->writeRunfile();
+        }
     }
 
     /**
-     * Fetches an associative array from given JSON URL
-     * @param  string $url JSON URL
-     * @return array Associative data array
+     * Downloads images to cache directory
+     * @param array $fetchList
      */
-    private function fetchImagesFromApi($url)
+    private function fetchImageFiles(array $fetchList)
     {
-        $data = json_decode(file_get_contents($url), true);
-        $error = json_last_error();
+        try {
+            $this->fetchImagesMetadata();
+            foreach ($this->images as $image) {
+                if (in_array($image['enddate'], array_keys($fetchList))) {
+                    $fileName = sprintf('%s/%s.jpg', $this->args['cacheDir'], $image['enddate']);
+                    if (file_put_contents($fileName, file_get_contents($image['url']))) {
+                        $this->cachedImages[] = $fileName;
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+            exit($e->getMessage());
+        }
+    }
 
-        if ($error === JSON_ERROR_NONE && is_array($data['images'])) {
-            $images = $data['images'];
-            foreach ($images as $key => $image) {
-                $images[$key]['url'] = self::BASE_URL . $image['url'];
+    /**
+     * Write current arguments to runfile
+     */
+    private function writeRunfile()
+    {
+        $argsJson = json_encode($this->args);
+        $filename = sprintf('%s/%s', $this->args['cacheDir'], self::RUNFILE_NAME);
+        file_put_contents($filename, $argsJson);
+    }
+
+    /**
+     * Returns the persisted arguments in the runfile
+     * @return array|null
+     */
+    private function readRunfile()
+    {
+        $filename = sprintf('%s/%s', $this->args['cacheDir'], self::RUNFILE_NAME);
+
+        if (file_exists($filename)) {
+            $runfile = json_decode(file_get_contents($filename), true);
+            if (JSON_ERROR_NONE === json_last_error()) {
+                return $runfile;
+            } else {
+                unlink($filename);
+                return null;
             }
         } else {
-            $msg = 'Unable to retrieve JSON data: ' . $error;
-            error_log($msg);
-            exit($msg);
+            return null;
         }
-
-        return $images;
     }
 
     /**
@@ -209,6 +247,17 @@ class BingPhoto
     {
         return sprintf(self::BASE_URL . self::JSON_URL . '&idx=%d&n=%d&mkt=%s', $date, $n, $locale);
     }
+
+    /**
+     * Changes relative to absolute URLs
+     */
+    private function setAbsoluteUrl()
+    {
+        foreach ($this->images as $key => $image) {
+            $this->images[$key]['url'] = self::BASE_URL . $image['url'];
+        }
+    }
+
 
     /**
      * Sets the image quality
