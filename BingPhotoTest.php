@@ -10,6 +10,7 @@ class BingPhotoTest extends TestCase
      * @dataProvider invalidArgumentProvider
      * @param $expected
      * @param $args
+     * @throws Exception
      */
     public function testArgsValidation($expected, $args = [])
     {
@@ -22,8 +23,9 @@ class BingPhotoTest extends TestCase
     }
 
     /**
-     * @dataProvider countProvider
+     * @dataProvider countArgsProvider
      * @param $args
+     * @throws Exception
      */
     public function testCount($args = [])
     {
@@ -32,17 +34,80 @@ class BingPhotoTest extends TestCase
         $this->assertCount($count, $bingPhoto->getImages());
     }
 
+    // TODO: locale test
+    // TODO: date test
+
     /**
-     * @dataProvider resolutionProvider
+     * @dataProvider qualityArgsProvider
      * @param $args
+     * @throws Exception
      */
-    public function testResolution($args = [])
+    public function testQuality($args = [])
     {
         $bingPhoto = new BingPhoto($args);
         foreach ($bingPhoto->getImages() as $image) {
             list($width, $height) = getimagesize($image['url']);
-            $this->assertEquals($width . 'x' . $height, $args['resolution'] ?? BingPhoto::RESOLUTION_HIGH);
+            $this->assertEquals($width . 'x' . $height, $args['quality'] ?? BingPhoto::QUALITY_HIGH);
         }
+    }
+
+    /**
+     * @dataProvider cacheArgsProvider
+     * @param $args
+     * @throws Exception
+     */
+    public function testCache($args = [])
+    {
+        if (!file_exists($args['cacheDir'])) {
+            mkdir($args['cacheDir']);
+        }
+
+        $bingPhoto = new BingPhoto($args);
+        $args = $bingPhoto->getArgs();
+
+        // Check if runfile was created
+        $this->assertFileExists(sprintf('%s/%s', $args['cacheDir'], BingPhoto::RUNFILE_NAME));
+        $this->assertCount($args['n'], $bingPhoto->getCachedImages());
+
+        $mtimes = [];
+        foreach ($bingPhoto->getCachedImages() as $image) {
+            $this->assertFileExists($image);
+            $mtimes[$image] = filemtime($image);
+        }
+
+        // Ensure that images are actually cached (with same config)
+        $bingPhoto = new BingPhoto($args);
+        foreach ($bingPhoto->getCachedImages() as $image) {
+            clearstatcache($image);
+            $mtime = filemtime($image);
+            $this->assertEquals($mtime, $mtimes[$image]);
+            $mtimes[$image] = $mtime;
+        }
+
+        // Check cache busting (changed config)
+        sleep(1);
+        $args['quality'] = BingPhoto::QUALITY_LOW;
+        $bingPhoto = new BingPhoto($args);
+        foreach ($bingPhoto->getCachedImages() as $image) {
+            clearstatcache($image);
+            $this->assertNotEquals(filemtime($image), $mtimes[$image]);
+        }
+    }
+
+    /**
+     * @dataProvider invalidCacheArgsProvider
+     * @param $args
+     * @throws Exception
+     */
+    public function testInvalidCache($args = [])
+    {
+        if (!empty($args['cacheDir']) && !file_exists($args['cacheDir'])) {
+            $this->expectException(Exception::class);
+        }
+
+        $bingPhoto = new BingPhoto($args);
+        $this->assertEmpty($bingPhoto->getCachedImages());
+
     }
 
     public function invalidArgumentProvider()
@@ -64,25 +129,27 @@ class BingPhotoTest extends TestCase
                 ['n' => 1],
                 ['n' => -2],
             ],
-            'unavailable resolution' => [
-                ['resolution' => '1920x1080'],
-                ['resolution' => '800x600'],
+            'unavailable quality' => [
+                ['quality' => '1920x1080'],
+                ['quality' => '800x600'],
             ],
-            'invalid resolution' => [
-                ['resolution' => '1920x1080'],
-                ['resolution' => '😳'],
+            'invalid quality' => [
+                ['quality' => '1920x1080'],
+                ['quality' => '😳'],
             ],
-            'empty resolution' => [
-                ['resolution' => '1920x1080'],
-                ['resolution' => null],
+            'empty quality' => [
+                ['quality' => '1920x1080'],
+                ['quality' => null],
             ],
         ];
     }
 
-    public function countProvider()
+    public function countArgsProvider()
     {
         return [
-            'one image' => [],
+            'one image' => [
+                []
+            ],
             'one image explicitly' => [
                 ['n' => 1],
             ],
@@ -98,16 +165,47 @@ class BingPhotoTest extends TestCase
         ];
     }
 
-    public function resolutionProvider()
+    public function qualityArgsProvider()
     {
         return [
-            'no arguments' => [],
-            'low resolution' => [
-                ['resolution' => BingPhoto::RESOLUTION_LOW]
+            'no arguments' => [
+                []
             ],
-            'high resolution' => [
-                ['resolution' => BingPhoto::RESOLUTION_HIGH]
+            'low quality' => [
+                ['quality' => BingPhoto::QUALITY_LOW]
+            ],
+            'high quality' => [
+                ['quality' => BingPhoto::QUALITY_HIGH]
             ]
+        ];
+    }
+
+    public function cacheArgsProvider()
+    {
+        return [
+            'default options' => [
+                [
+                    'cacheDir' => '/tmp/bing',
+                ]
+            ],
+            'three images' => [
+                [
+                    'cacheDir' => '/tmp/bing',
+                    'n' => 3
+                ]
+            ],
+        ];
+    }
+
+    public function invalidCacheArgsProvider()
+    {
+        return [
+            'empty cache directory' => [
+                ['cacheDir' => '']
+            ],
+            'invalid cache directory' => [
+                ['cacheDir' => '/foo']
+            ],
         ];
     }
 }

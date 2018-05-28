@@ -2,6 +2,8 @@
 
 BingPhoto is a simple PHP class to fetch Bing's image of the day with meta data.
 
+It is also possible to cache the images locally, which can be useful in combination with a periodic cronjob. See the `cacheDir` parameter for this (optional) feature. Disclaimer: this might be a copyright issue.
+
 ## Basic usage
 
 ```php
@@ -24,12 +26,16 @@ $image = $bing->getImage();
 
 The class has some optional parameters to control various options:
 
+**Breaking change: the parameter `resolution` was renamed to `quality`. See also the constants `BingPhoto::QUALITY_LOW` and `BingPhoto::QUALITY_HIGHT`.**
+
 | Parameter   |Description        |Default              |Valid values|
 |-------------|-------------------|---------------------|------------|
-| $date|Date of photo|`BingPhoto::DATE_TODAY` |`BingPhoto::DATE_YESTERDAY`, `BingPhoto::DATE_TODAY`, `BingPhoto::DATE_TOMORROW`, `any integer >= -1`|
-| $n|Number of photos to fetch, going from date backwards|1|1 - 8|
-| $locale     |Locale code|`Locale::getDefault()`|Whatever language Bing supports|
-| $resolution |Image resolution|`BingPhoto::RESOLUTION_HIGH`|`BingPhoto::RESOLUTION_LOW`, `BingPhoto::RESOLUTION_HIGH`|
+| `cacheDir` | Directory for image caching | `null` | An existing directory |
+| `date` | Date of photo | `BingPhoto::DATE_TODAY` |`BingPhoto::DATE_YESTERDAY`, `BingPhoto::DATE_TODAY`, `BingPhoto::DATE_TOMORROW`, `any integer >= -1` |
+| `locale` |Locale code | `Locale::getDefault()` | Whatever language Bing supports |
+| `n` | Number of photos to fetch, going from date backwards | 1 | 1 - 8 |
+| `quality` | Image resolution | `BingPhoto::QUALITY_HIGH` | `BingPhoto::QUALITY_LOW`, `BingPhoto::QUALITY_HIGH` |
+
 
 ## Examples
 
@@ -49,22 +55,32 @@ foreach ($bing->getImages() as $image) {
 // Fetches the current image of the day in low resolution from the French Bing portal
 $bing = new BingPhoto([
     'locale' => 'fr-FR',
-    'resolution' => BingPhoto::RESOLUTION_LOW,
+    'quality' => BingPhoto::QUALITY_LOW,
 ]);
 
 printf('<img src="%s">', $bing->getImage()['url']);
 ```
 
 ```php
-// Fetches three images of the day in high resolution from the German Bing portal, starting yesterday
+// Fetches three images of the day in high quality from the German Bing portal, starting yesterday
 $bing = new BingPhoto([
     'n' => 3,
     'date' => BingPhoto::YESTERDAY,
     'locale' => 'de-DE',
-    'resolution' => BingPhoto::RESOLUTION_HIGH,
+    'quality' => BingPhoto::QUALITY_HIGH,
 ]);
 
 foreach ($bing->getImages() as $image) {
     printf('<img src="%s">', $image['url']);
 }
+```
+
+```php
+// Using the local cache 
+// (remember to create the directory first!)
+$bing = new BingPhoto([
+    'cacheDir' => '/tmp/bing-photo',
+    'n' => 5,
+    'quality' => BingPhoto::QUALITY_LOW,
+]);
 ```
