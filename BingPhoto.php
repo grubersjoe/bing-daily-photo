@@ -165,12 +165,10 @@ class BingPhoto
                 $imageShouldBeCached = in_array($image->getBasename('.jpg'), array_keys($fetchList));
                 if ($prevArgs === $this->args && $imageShouldBeCached) {
                     // Image already present - no need to download it again
-                    printf('already present - skipping %s' . PHP_EOL, $image->getFilename());
                     unset($fetchList[$image->getBasename('.jpg')]);
                     $this->cachedImages[] = $image->getRealPath();
                 } else {
                     // Config changed or cache duration expired - remove the file
-                    printf('removing %s' . PHP_EOL, $image->getFilename());
                     unlink($image->getRealPath());
                 }
             }
