@@ -4,10 +4,18 @@ BingPhoto is a simple PHP class to fetch Bing's image of the day with meta data.
 
 It is also possible to cache the images locally, which can be useful in combination with a periodic cronjob. See the `cacheDir` parameter for this (optional) feature. Disclaimer: this might be a copyright issue.
 
+## Installation
+
+Use [Composer](https://getcomposer.org/) to install this package:
+
+```sh
+composer require grubersjoe/bing-daily-photo
+```
+
 ## Basic usage
 
 ```php
-$bing = new BingPhoto();
+$bing = new grubersjoe\BingPhoto();
 $image = $bing->getImage();
 
 // Example result ($image)
@@ -41,9 +49,9 @@ Breaking change: the parameter `resolution` was renamed to `quality`. See also t
 
 ```php
 // Fetches two images of the day starting yesterday from Bing
-$bing = new BingPhoto([
+$bing = new grubersjoe\BingPhoto([
     'n' => 2,
-    'date' => BingPhoto::YESTERDAY
+    'date' => grubersjoe\BingPhoto::YESTERDAY
 ]);
 
 foreach ($bing->getImages() as $image) {
@@ -53,9 +61,9 @@ foreach ($bing->getImages() as $image) {
 
 ```php
 // Fetches the current image of the day in low resolution from the French Bing portal
-$bing = new BingPhoto([
+$bing = new grubersjoe\BingPhoto([
     'locale' => 'fr-FR',
-    'quality' => BingPhoto::QUALITY_LOW,
+    'quality' => grubersjoe\BingPhoto::QUALITY_LOW,
 ]);
 
 printf('<img src="%s">', $bing->getImage()['url']);
@@ -63,11 +71,11 @@ printf('<img src="%s">', $bing->getImage()['url']);
 
 ```php
 // Fetches three images of the day in high quality from the German Bing portal, starting yesterday
-$bing = new BingPhoto([
+$bing = new grubersjoe\BingPhoto([
     'n' => 3,
-    'date' => BingPhoto::YESTERDAY,
+    'date' => grubersjoe\BingPhoto::YESTERDAY,
     'locale' => 'de-DE',
-    'quality' => BingPhoto::QUALITY_HIGH,
+    'quality' => grubersjoe\BingPhoto::QUALITY_HIGH,
 ]);
 
 foreach ($bing->getImages() as $image) {
@@ -78,9 +86,9 @@ foreach ($bing->getImages() as $image) {
 ```php
 // Using the local cache 
 // (remember to create the directory first!)
-$bing = new BingPhoto([
+$bing = new grubersjoe\BingPhoto([
     'cacheDir' => '/tmp/bing-photo',
     'n' => 5,
-    'quality' => BingPhoto::QUALITY_LOW,
+    'quality' => grubersjoe\BingPhoto::QUALITY_LOW,
 ]);
 ```

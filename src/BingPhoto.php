@@ -1,5 +1,7 @@
 <?php
 
+namespace grubersjoe;
+
 /**
  * A simple class which fetches Bing's image of the day with meta data
  */
@@ -32,7 +34,7 @@ class BingPhoto
      *      $args['locale'] string Localization string (en-US, de-DE, ...)
      *      $args['n'] int Number of images / days
      *      $args['quality'] string Resolution of images(s)
-     * @throws Exception
+     * @throws \Exception
      */
     public function __construct(array $args = [])
     {
@@ -45,7 +47,7 @@ class BingPhoto
             if (file_exists($cacheDir)) {
                 $this->cacheImages();
             } else {
-                throw new Exception(sprintf('Given cache directory %s does not exist', $cacheDir));
+                throw new \Exception(sprintf('Given cache directory %s does not exist', $cacheDir));
             }
         }
     }
@@ -100,7 +102,7 @@ class BingPhoto
         $defaultArgs = [
             'cacheDir' => false,
             'date' => self::TODAY,
-            'locale' => str_replace('_', '-', Locale::getDefault()),
+            'locale' => str_replace('_', '-', \Locale::getDefault()),
             'n' => 1,
             'quality' => self::QUALITY_HIGH,
         ];
@@ -126,7 +128,7 @@ class BingPhoto
 
     /**
      * Fetches the image meta data from Bing (JSON)
-     * @throws Exception
+     * @throws \Exception
      */
     private function fetchImagesMetadata()
     {
@@ -140,7 +142,7 @@ class BingPhoto
             $this->setAbsoluteUrl();
             $this->setQuality();
         } else {
-            throw new Exception('Unable to retrieve JSON data: ' . $error);
+            throw new \Exception('Unable to retrieve JSON data: ' . $error);
         }
     }
 
@@ -153,14 +155,14 @@ class BingPhoto
         $fetchList = [];
 
         // Build a list of to be cached dates
-        $baseDate = (new DateTime())->modify(sprintf('-%d day', $this->args['date'] - 1));
+        $baseDate = (new \DateTime())->modify(sprintf('-%d day', $this->args['date'] - 1));
         for ($i = 0; $i < $this->args['n']; $i++) {
             $date = $baseDate->modify('-1 day')->format('Ymd');
             $fetchList[$date] = true;
         }
 
         // Check current cache
-        $dirIterator = new DirectoryIterator($this->args['cacheDir']);
+        $dirIterator = new \DirectoryIterator($this->args['cacheDir']);
         foreach ($dirIterator as $image) {
             if ($image->isFile() && $image->getExtension() === 'jpg') {
                 $imageShouldBeCached = in_array($image->getBasename('.jpg'), array_keys($fetchList));
@@ -198,7 +200,7 @@ class BingPhoto
                     }
                 }
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             error_log($e->getMessage());
             exit($e->getMessage());
         }

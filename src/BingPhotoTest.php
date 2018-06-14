@@ -1,5 +1,7 @@
 <?php
 
+namespace grubersjoe;
+
 use PHPUnit\Framework\TestCase;
 
 require('BingPhoto.php');
@@ -10,7 +12,7 @@ class BingPhotoTest extends TestCase
      * @dataProvider invalidArgumentProvider
      * @param $expected
      * @param $args
-     * @throws Exception
+     * @throws \Exception
      */
     public function testArgsValidation($expected, $args = [])
     {
@@ -25,12 +27,12 @@ class BingPhotoTest extends TestCase
     /**
      * @dataProvider countArgsProvider
      * @param $args
-     * @throws Exception
+     * @throws \Exception
      */
     public function testCount($args = [])
     {
         $bingPhoto = new BingPhoto($args);
-        $count = min($args['n'] ?? 1, BingPhoto::LIMIT_N);
+        $count = min(isset($args['n']) ? $args['n'] : 1, BingPhoto::LIMIT_N);
         $this->assertCount($count, $bingPhoto->getImages());
     }
 
@@ -40,21 +42,22 @@ class BingPhotoTest extends TestCase
     /**
      * @dataProvider qualityArgsProvider
      * @param $args
-     * @throws Exception
+     * @throws \Exception
      */
     public function testQuality($args = [])
     {
         $bingPhoto = new BingPhoto($args);
         foreach ($bingPhoto->getImages() as $image) {
             list($width, $height) = getimagesize($image['url']);
-            $this->assertEquals($width . 'x' . $height, $args['quality'] ?? BingPhoto::QUALITY_HIGH);
+            $quality = isset($args['quality']) ? $args['quality'] : BingPhoto::QUALITY_HIGH;
+            $this->assertEquals($width . 'x' . $height, $quality);
         }
     }
 
     /**
      * @dataProvider cacheArgsProvider
      * @param $args
-     * @throws Exception
+     * @throws \Exception
      */
     public function testCache($args = [])
     {
@@ -97,12 +100,12 @@ class BingPhotoTest extends TestCase
     /**
      * @dataProvider invalidCacheArgsProvider
      * @param $args
-     * @throws Exception
+     * @throws \Exception
      */
     public function testInvalidCache($args = [])
     {
         if (!empty($args['cacheDir']) && !file_exists($args['cacheDir'])) {
-            $this->expectException(Exception::class);
+            $this->expectException(\Exception::class);
         }
 
         $bingPhoto = new BingPhoto($args);
