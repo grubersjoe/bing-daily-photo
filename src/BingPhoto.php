@@ -196,7 +196,7 @@ class BingPhoto
                 if (in_array($image['enddate'], array_keys($fetchList))) {
                     $fileName = sprintf('%s/%s.jpg', $this->args['cacheDir'], $image['enddate']);
                     if (file_put_contents($fileName, file_get_contents($image['url']))) {
-                        $this->cachedImages[] = $fileName;
+                        $this->cachedImages[] = realpath($fileName);
                     }
                 }
             }
