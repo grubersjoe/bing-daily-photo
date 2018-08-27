@@ -32,7 +32,7 @@ $image = $bing->getImage();
 
 ## Parameters / options
 
-Breaking change as of v1: the parameter `resolution` was renamed to `quality`. See also the constants `BingPhoto::QUALITY_LOW` and `BingPhoto::QUALITY_HIGHT`.
+Breaking change as of v1: the parameter `resolution` was renamed to `quality`. See also the constants `BingPhoto::QUALITY_LOW` and `BingPhoto::QUALITY_HIGH`.
 
 | Parameter   |Description        |Default              |Valid values|
 |-------------|-------------------|---------------------|------------|
