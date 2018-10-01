@@ -110,7 +110,6 @@ class BingPhotoTest extends TestCase
 
         $bingPhoto = new BingPhoto($args);
         $this->assertEmpty($bingPhoto->getCachedImages());
-
     }
 
     public function invalidArgumentProvider()

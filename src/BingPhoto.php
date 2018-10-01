@@ -132,8 +132,12 @@ class BingPhoto
      */
     private function fetchImagesMetadata()
     {
-        $url = sprintf(self::BASE_URL . self::JSON_URL . '&idx=%d&n=%d&mkt=%s',
-            $this->args['date'], $this->args['n'], $this->args['locale']);
+        $url = sprintf(
+            self::BASE_URL . self::JSON_URL . '&idx=%d&n=%d&mkt=%s',
+            $this->args['date'],
+            $this->args['n'],
+            $this->args['locale']
+        );
         $data = json_decode(file_get_contents($url), true);
         $error = json_last_error();
 
