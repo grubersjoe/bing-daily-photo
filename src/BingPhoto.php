@@ -3,11 +3,10 @@
 namespace grubersjoe;
 
 /**
- * A simple class which fetches Bing's image of the day with meta data
+ * A simple class which fetches Bing's image of the day with meta data.
  */
 class BingPhoto
 {
-
     // Constants
     const TOMORROW = -1;
     const TODAY = 0;
@@ -27,13 +26,15 @@ class BingPhoto
     private $cachedImages = [];
 
     /**
-     * Constructor: Fetches image(s) of the day from Bing
+     * Constructor: Fetches image(s) of the day from Bing.
+     *
      * @param array $args Options array
-     *      $args['cacheDir'] string Cache (download) images in this directory
-     *      $args['date'] intDate offset. 0 equals today, 1 = yesterday, and so on.
-     *      $args['locale'] string Localization string (en-US, de-DE, ...)
-     *      $args['n'] int Number of images / days
-     *      $args['quality'] string Resolution of images(s)
+     *                    $args['cacheDir'] string Cache (download) images in this directory
+     *                    $args['date'] intDate offset. 0 equals today, 1 = yesterday, and so on.
+     *                    $args['locale'] string Localization string (en-US, de-DE, ...)
+     *                    $args['n'] int Number of images / days
+     *                    $args['quality'] string Resolution of images(s)
+     *
      * @throws \Exception
      */
     public function __construct(array $args = [])
@@ -53,7 +54,8 @@ class BingPhoto
     }
 
     /**
-     * Returns the first fetched image
+     * Returns the first fetched image.
+     *
      * @return array The image array with its URL and further meta data
      */
     public function getImage()
@@ -64,8 +66,10 @@ class BingPhoto
     }
 
     /**
-     * Returns n fetched images
+     * Returns n fetched images.
+     *
      * @param int $n Number of images to return
+     *
      * @return array Image data
      */
     public function getImages($n = 1)
@@ -76,7 +80,8 @@ class BingPhoto
     }
 
     /**
-     * Returns the list of locally cached images
+     * Returns the list of locally cached images.
+     *
      * @return array List of absolute paths to cached images
      */
     public function getCachedImages()
@@ -85,7 +90,8 @@ class BingPhoto
     }
 
     /**
-     * Returns the class arguments
+     * Returns the class arguments.
+     *
      * @return array Class arguments
      */
     public function getArgs()
@@ -94,7 +100,8 @@ class BingPhoto
     }
 
     /**
-     * Sets the class arguments
+     * Sets the class arguments.
+     *
      * @param array $args
      */
     private function setArgs(array $args)
@@ -111,8 +118,10 @@ class BingPhoto
     }
 
     /**
-     * Performs sanity checks
+     * Performs sanity checks.
+     *
      * @param array $args Arguments
+     *
      * @return array Sanitized arguments
      */
     private function sanitizeArgs(array $args)
@@ -127,7 +136,8 @@ class BingPhoto
     }
 
     /**
-     * Fetches the image meta data from Bing (JSON)
+     * Fetches the image meta data from Bing (JSON).
+     *
      * @throws \Exception
      */
     private function fetchImagesMetadata()
@@ -137,7 +147,7 @@ class BingPhoto
         $data = json_decode(file_get_contents($url), true);
         $error = json_last_error();
 
-        if ($error === JSON_ERROR_NONE && is_array($data['images'])) {
+        if (JSON_ERROR_NONE === $error && is_array($data['images'])) {
             $this->images = $data['images'];
             $this->setAbsoluteUrl();
             $this->setQuality();
@@ -147,7 +157,7 @@ class BingPhoto
     }
 
     /**
-     * Caches the images on local disk
+     * Caches the images on local disk.
      */
     private function cacheImages()
     {
@@ -164,7 +174,7 @@ class BingPhoto
         // Check current cache
         $dirIterator = new \DirectoryIterator($this->args['cacheDir']);
         foreach ($dirIterator as $image) {
-            if ($image->isFile() && $image->getExtension() === 'jpg') {
+            if ($image->isFile() && 'jpg' === $image->getExtension()) {
                 $imageShouldBeCached = in_array($image->getBasename('.jpg'), array_keys($fetchList));
                 if ($prevArgs === $this->args && $imageShouldBeCached) {
                     // Image already present - no need to download it again
@@ -185,7 +195,8 @@ class BingPhoto
     }
 
     /**
-     * Downloads images to cache directory
+     * Downloads images to cache directory.
+     *
      * @param array $fetchList
      */
     private function fetchImageFiles(array $fetchList)
@@ -207,7 +218,7 @@ class BingPhoto
     }
 
     /**
-     * Write current arguments to runfile
+     * Write current arguments to runfile.
      */
     private function writeRunfile()
     {
@@ -217,7 +228,8 @@ class BingPhoto
     }
 
     /**
-     * Returns the persisted arguments in the runfile
+     * Returns the persisted arguments in the runfile.
+     *
      * @return array|null
      */
     private function readRunfile()
@@ -228,17 +240,17 @@ class BingPhoto
             $runfile = json_decode(file_get_contents($filename), true);
             if (JSON_ERROR_NONE === json_last_error()) {
                 return $runfile;
-            } else {
-                unlink($filename);
-                return null;
             }
-        } else {
+            unlink($filename);
+
             return null;
         }
+
+        return null;
     }
 
     /**
-     * Changes relative to absolute URLs
+     * Changes relative to absolute URLs.
      */
     private function setAbsoluteUrl()
     {
@@ -247,9 +259,8 @@ class BingPhoto
         }
     }
 
-
     /**
-     * Sets the image quality
+     * Sets the image quality.
      */
     private function setQuality()
     {
