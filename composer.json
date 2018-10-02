@@ -22,6 +22,7 @@
         "friendsofphp/php-cs-fixer": "^2.13"
     },
     "scripts": {
-        "format": "php-cs-fixer fix src/"
+        "format": "php-cs-fixer fix src/",
+        "test": "phpunit --testdox src/"
     }
 }
