@@ -15,6 +15,7 @@ composer require grubersjoe/bing-daily-photo
 ## Basic usage
 
 ```php
+<?php
 $bing = new grubersjoe\BingPhoto();
 $image = $bing->getImage();
 
