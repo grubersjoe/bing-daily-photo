@@ -8,6 +8,8 @@ require 'BingPhoto.php';
 
 class BingPhotoTest extends TestCase
 {
+    const CACHE_DIR = './.cache/';
+
     /**
      * @dataProvider invalidArgumentProvider
      *
@@ -16,7 +18,7 @@ class BingPhotoTest extends TestCase
      *
      * @throws \Exception
      */
-    public function testArgsValidation($expected, $args = [])
+    public function testArgsValidation($expected, $args = []): void
     {
         $bingPhoto = new BingPhoto($args);
         $actual = $bingPhoto->getArgs();
@@ -50,7 +52,7 @@ class BingPhotoTest extends TestCase
      *
      * @throws \Exception
      */
-    public function testQuality($args = [])
+    public function testQuality($args = []): void
     {
         $bingPhoto = new BingPhoto($args);
         foreach ($bingPhoto->getImages() as $image) {
@@ -67,10 +69,10 @@ class BingPhotoTest extends TestCase
      *
      * @throws \Exception
      */
-    public function testCache($args = [])
+    public function testCache($args = []): void
     {
-        if (!file_exists($args['cacheDir'])) {
-            mkdir($args['cacheDir']);
+        if (file_exists($args['cacheDir'])) {
+            system(sprintf('rm -r %s', self::CACHE_DIR));
         }
 
         $bingPhoto = new BingPhoto($args);
@@ -78,6 +80,8 @@ class BingPhotoTest extends TestCase
 
         // Check if runfile was created
         static::assertFileExists(sprintf('%s/%s', $args['cacheDir'], BingPhoto::RUNFILE_NAME));
+
+        // Check quantity
         static::assertCount($args['n'], $bingPhoto->getCachedImages());
 
         $mtimes = [];
@@ -112,7 +116,7 @@ class BingPhotoTest extends TestCase
      *
      * @throws \Exception
      */
-    public function testInvalidCache($args = [])
+    public function testInvalidCache($args = []): void
     {
         if (!empty($args['cacheDir']) && !file_exists($args['cacheDir'])) {
             $this->expectException(\Exception::class);
@@ -122,7 +126,7 @@ class BingPhotoTest extends TestCase
         static::assertEmpty($bingPhoto->getCachedImages());
     }
 
-    public function invalidArgumentProvider()
+    public function invalidArgumentProvider(): array
     {
         return [
             'invalid date in future' => [
@@ -156,7 +160,7 @@ class BingPhotoTest extends TestCase
         ];
     }
 
-    public function countArgsProvider()
+    public function countArgsProvider(): array
     {
         return [
             'one image' => [
@@ -177,7 +181,7 @@ class BingPhotoTest extends TestCase
         ];
     }
 
-    public function qualityArgsProvider()
+    public function qualityArgsProvider(): array
     {
         return [
             'no arguments' => [
@@ -197,26 +201,32 @@ class BingPhotoTest extends TestCase
         return [
             'default options' => [
                 [
-                    'cacheDir' => '/tmp/bing',
+                    'cacheDir' => self::CACHE_DIR,
+                    'locale' => 'de-DE',
                 ],
             ],
             'three images' => [
                 [
-                    'cacheDir' => '/tmp/bing',
+                    'cacheDir' => self::CACHE_DIR,
+                    'locale' => 'de-DE',
                     'n' => 3,
                 ],
             ],
         ];
     }
 
-    public function invalidCacheArgsProvider()
+    public function invalidCacheArgsProvider(): array
     {
         return [
             'empty cache directory' => [
-                ['cacheDir' => ''],
+                [
+                    'cacheDir' => '',
+                ],
             ],
             'invalid cache directory' => [
-                ['cacheDir' => '/foo'],
+                [
+                    'cacheDir' => '/foo',
+                ],
             ],
         ];
     }
