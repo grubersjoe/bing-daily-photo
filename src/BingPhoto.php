@@ -140,7 +140,7 @@ class BingPhoto
      */
     private function fetchImageMetadata(): void
     {
-        $url = sprintf(self::BASE_URL . self::JSON_URL . '&idx=%d&n=%d&mkt=%s',
+        $url = sprintf(self::BASE_URL . self::JSON_URL . '&idx=%d&n=%d&mbl=1&mkt=%s',
             $this->args['date'], $this->args['n'], $this->args['locale']);
 
         $data = json_decode(file_get_contents($url), true);
