@@ -40,10 +40,10 @@ Breaking change as of v1: the parameter `resolution` was renamed to `quality`. S
 | Parameter   |Description        |Default              |Valid values|
 |-------------|-------------------|---------------------|------------|
 | `cacheDir` | Directory for image caching | `null` | An existing directory, otherwise the directory will be created if possible |
-| `date` | Date of photo | `BingPhoto::DATE_TODAY` |`BingPhoto::DATE_YESTERDAY`, `BingPhoto::DATE_TODAY`, `BingPhoto::DATE_TOMORROW`, `any integer >= -1` |
+| `date` | Date of photo | `BingPhoto::DATE_TODAY` |`BingPhoto::DATE_YESTERDAY`<br>`BingPhoto::DATE_TODAY`<br>`BingPhoto::DATE_TOMORROW`<br>`any integer >= -1` |
 | `locale` |Locale code | `Locale::getDefault()` | Whatever language Bing supports |
 | `n` | Number of photos to fetch, going from date backwards | 1 | 1 - 8 |
-| `quality` | Image resolution | `BingPhoto::QUALITY_HIGH` | `BingPhoto::QUALITY_LOW`, `BingPhoto::QUALITY_HIGH` |
+| `quality` | Image resolution | `BingPhoto::QUALITY_HIGH` | `BingPhoto::QUALITY_LOW`<br>`BingPhoto::QUALITY_HIGH` |
 
 
 ## Examples
