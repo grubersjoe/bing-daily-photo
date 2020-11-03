@@ -97,8 +97,6 @@ class BingPhoto
 
     /**
      * Sets the class arguments.
-     *
-     * @param array $args
      */
     private function setArgs(array $args): void
     {
@@ -201,8 +199,6 @@ class BingPhoto
 
     /**
      * Downloads images to cache directory.
-     *
-     * @param array $fetchList
      */
     private function fetchImageFiles(array $fetchList): void
     {
@@ -231,8 +227,6 @@ class BingPhoto
 
     /**
      * Returns the persisted arguments in the runfile.
-     *
-     * @return array|null
      */
     private function readRunfile(): ?array
     {
