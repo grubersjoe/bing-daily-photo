@@ -8,7 +8,7 @@ require 'BingPhoto.php';
 
 class BingPhotoTest extends TestCase
 {
-    const CACHE_DIR = './.cache/';
+    public const CACHE_DIR = './.cache/';
 
     /**
      * @dataProvider invalidArgumentProvider

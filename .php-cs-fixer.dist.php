@@ -25,7 +25,7 @@ $rules = [
     'return_assignment' => true,
 ];
 
-$config = PhpCsFixer\Config::create()
+$config = (new PhpCsFixer\Config())
     ->setUsingCache(false)
     ->setRiskyAllowed(true)
     ->setRules($rules)
