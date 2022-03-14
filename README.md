@@ -1,7 +1,5 @@
 # Bing Daily Photo
 
-[![CircleCI](https://circleci.com/gh/grubersjoe/bing-daily-photo.svg?style=shield)](https://circleci.com/gh/grubersjoe/bing-daily-photo)
-
 BingPhoto is a simple PHP class to fetch Bing's image of the day with meta data.
 
 It is also possible to cache the images locally, which can be useful in combination with a periodic cronjob. See the `cacheDir` parameter for this (optional) feature. Disclaimer: this might be a copyright issue.
