@@ -223,11 +223,6 @@ class BingPhotoTest extends TestCase
                     'cacheDir' => '',
                 ],
             ],
-            'invalid cache directory' => [
-                [
-                    'cacheDir' => '/foo',
-                ],
-            ],
         ];
     }
 }
