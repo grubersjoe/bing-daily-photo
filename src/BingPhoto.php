@@ -2,35 +2,40 @@
 
 namespace grubersjoe;
 
+use DateTime;
+use DirectoryIterator;
+use Exception;
+use Locale;
+
 /**
- * A simple class which fetches Bing's image of the day with meta data.
+ * A simple class which fetches Bing's image of the day with metadata.
  */
 class BingPhoto
 {
     // Constants
-    const TOMORROW = -1;
-    const TODAY = 0;
-    const YESTERDAY = 1;
-    const LIMIT_N = 8; // Bing's API returns at most 8 images
-    const QUALITY_LOW = '1366x768';
-    const QUALITY_HIGH = '1920x1080';
+    public const TOMORROW = -1;
+    public const TODAY = 0;
+    public const YESTERDAY = 1;
+    public const LIMIT_N = 8; // Bing's API returns at most 8 images
+    public const QUALITY_LOW = '1366x768';
+    public const QUALITY_HIGH = '1920x1080';
 
-    const RUNFILE_NAME = '.lastrun';
+    public const RUNFILE_NAME = '.lastrun';
 
     // API
-    const BASE_URL = 'https://www.bing.com';
-    const JSON_URL = '/HPImageArchive.aspx?format=js';
+    public const BASE_URL = 'https://www.bing.com';
+    public const JSON_URL = '/HPImageArchive.aspx?format=js';
 
-    private $args;
-    private $images = [];
-    private $cachedImages = [];
+    protected array $args;
+    protected array $images = [];
+    protected array $cachedImages = [];
 
     /**
      * Constructor: Fetches image(s) of the day from Bing.
      *
      * @param array $args Options array, see README
      *
-     * @throws \Exception
+     * @throws Exception
      */
     public function __construct(array $args = [])
     {
@@ -44,7 +49,7 @@ class BingPhoto
             if (file_exists($cacheDir) || @mkdir($cacheDir, 0755)) {
                 $this->cacheImages();
             } else {
-                throw new \Exception(sprintf('Given cache directory %s does not exist or cannot be created', $cacheDir));
+                throw new Exception(sprintf('Given cache directory %s does not exist or cannot be created', $cacheDir));
             }
         }
     }
@@ -52,7 +57,7 @@ class BingPhoto
     /**
      * Returns the first fetched image.
      *
-     * @return array The image array with its URL and further meta data
+     * @return array The image array with its URL and further metadata
      */
     public function getImage(): array
     {
@@ -68,7 +73,7 @@ class BingPhoto
      *
      * @return array Image data
      */
-    public function getImages($n = 1): array
+    public function getImages(int $n = 1): array
     {
         $n = max($n, count($this->images));
 
@@ -98,12 +103,12 @@ class BingPhoto
     /**
      * Sets the class arguments.
      */
-    private function setArgs(array $args): void
+    protected function setArgs(array $args): void
     {
         $defaultArgs = [
             'cacheDir' => false,
             'date' => self::TODAY,
-            'locale' => str_replace('_', '-', \Locale::getDefault()),
+            'locale' => str_replace('_', '-', Locale::getDefault()),
             'n' => 1,
             'quality' => self::QUALITY_HIGH,
         ];
@@ -119,7 +124,7 @@ class BingPhoto
      *
      * @return array Sanitized arguments
      */
-    private function sanitizeArgs(array $args): array
+    protected function sanitizeArgs(array $args): array
     {
         $args['date'] = max($args['date'], self::TOMORROW);
         $args['n'] = min(max($args['n'], 1), self::LIMIT_N);
@@ -132,11 +137,11 @@ class BingPhoto
     }
 
     /**
-     * Fetches the image meta data from Bing (JSON).
+     * Fetches the image metadata from Bing (JSON).
      *
-     * @throws \Exception
+     * @throws Exception
      */
-    private function fetchImageMetadata(): void
+    protected function fetchImageMetadata(): void
     {
         $url = sprintf(self::BASE_URL . self::JSON_URL . '&idx=%d&n=%d&mkt=%s',
             $this->args['date'], $this->args['n'], $this->args['locale']);
@@ -149,23 +154,23 @@ class BingPhoto
             $this->setAbsoluteUrl();
             $this->setQuality();
         } else {
-            throw new \Exception('Unable to retrieve JSON data: ' . $error);
+            throw new Exception('Unable to retrieve JSON data: ' . $error);
         }
     }
 
     /**
      * Caches the images on local disk.
      *
-     * @throws \Exception
+     * @throws Exception
      */
-    private function cacheImages(): void
+    protected function cacheImages(): void
     {
         $prevArgs = $this->readRunfile();
         $fetchList = [];
 
         // Build a list of to be cached dates
         // Careful: the configured timezone in PHP is crucial here
-        $today = new \DateTime();
+        $today = new DateTime();
         $baseDate = $today->modify(sprintf('-%d day', $this->args['date'] - 1));
 
         for ($i = 0; $i < $this->args['n']; $i++) {
@@ -174,7 +179,7 @@ class BingPhoto
         }
 
         // Check current cache
-        $dirIterator = new \DirectoryIterator($this->args['cacheDir']);
+        $dirIterator = new DirectoryIterator($this->args['cacheDir']);
         foreach ($dirIterator as $image) {
             if ($image->isFile() && 'jpg' === $image->getExtension()) {
                 $imageShouldBeCached = in_array($image->getBasename('.jpg'), array_keys($fetchList));
@@ -199,8 +204,10 @@ class BingPhoto
 
     /**
      * Downloads images to cache directory.
+     *
+     * @throws Exception
      */
-    private function fetchImageFiles(array $fetchList): void
+    protected function fetchImageFiles(array $fetchList): void
     {
         $this->fetchImageMetadata();
 
@@ -218,7 +225,7 @@ class BingPhoto
     /**
      * Write current arguments to runfile.
      */
-    private function writeRunfile(): void
+    protected function writeRunfile(): void
     {
         $argsJson = json_encode($this->args);
         $filename = sprintf('%s/%s', $this->args['cacheDir'], self::RUNFILE_NAME);
@@ -228,7 +235,7 @@ class BingPhoto
     /**
      * Returns the persisted arguments in the runfile.
      */
-    private function readRunfile(): ?array
+    protected function readRunfile(): ?array
     {
         $filename = sprintf('%s/%s', $this->args['cacheDir'], self::RUNFILE_NAME);
 
@@ -246,7 +253,7 @@ class BingPhoto
     /**
      * Changes relative to absolute URLs.
      */
-    private function setAbsoluteUrl(): void
+    protected function setAbsoluteUrl(): void
     {
         foreach ($this->images as $key => $image) {
             $this->images[$key]['url'] = self::BASE_URL . $image['url'];
@@ -256,7 +263,7 @@ class BingPhoto
     /**
      * Sets the image quality.
      */
-    private function setQuality(): void
+    protected function setQuality(): void
     {
         foreach ($this->images as $key => $image) {
             $url = str_replace(self::QUALITY_HIGH, $this->args['quality'], $image['url']);

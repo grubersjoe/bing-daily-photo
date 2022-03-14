@@ -1,24 +1,24 @@
 <?php
 
+
 namespace grubersjoe;
 
 use PHPUnit\Framework\TestCase;
-
-require 'BingPhoto.php';
+use Exception;
 
 class BingPhotoTest extends TestCase
 {
-    const CACHE_DIR = './.cache/';
+    public const CACHE_DIR = './.cache/';
 
     /**
      * @dataProvider invalidArgumentProvider
      *
      * @param $expected
-     * @param $args
+     * @param array $args
      *
-     * @throws \Exception
+     * @throws Exception
      */
-    public function testArgsValidation($expected, $args = []): void
+    public function testArgsValidation($expected, array $args = []): void
     {
         $bingPhoto = new BingPhoto($args);
         $actual = $bingPhoto->getArgs();
@@ -31,14 +31,14 @@ class BingPhotoTest extends TestCase
     /**
      * @dataProvider countArgsProvider
      *
-     * @param $args
+     * @param array $args
      *
-     * @throws \Exception
+     * @throws Exception
      */
-    public function testCount($args = [])
+    public function testCount(array $args = [])
     {
         $bingPhoto = new BingPhoto($args);
-        $count = min(isset($args['n']) ? $args['n'] : 1, BingPhoto::LIMIT_N);
+        $count = min($args['n'] ?? 1, BingPhoto::LIMIT_N);
         static::assertCount($count, $bingPhoto->getImages());
     }
 
@@ -48,16 +48,16 @@ class BingPhotoTest extends TestCase
     /**
      * @dataProvider qualityArgsProvider
      *
-     * @param $args
+     * @param array $args
      *
-     * @throws \Exception
+     * @throws Exception
      */
-    public function testQuality($args = []): void
+    public function testQuality(array $args = []): void
     {
         $bingPhoto = new BingPhoto($args);
         foreach ($bingPhoto->getImages() as $image) {
             list($width, $height) = getimagesize($image['url']);
-            $quality = isset($args['quality']) ? $args['quality'] : BingPhoto::QUALITY_HIGH;
+            $quality = $args['quality'] ?? BingPhoto::QUALITY_HIGH;
             static::assertEquals($width . 'x' . $height, $quality);
         }
     }
@@ -65,11 +65,11 @@ class BingPhotoTest extends TestCase
     /**
      * @dataProvider cacheArgsProvider
      *
-     * @param $args
+     * @param array $args
      *
-     * @throws \Exception
+     * @throws Exception
      */
-    public function testCache($args = []): void
+    public function testCache(array $args = []): void
     {
         if (file_exists($args['cacheDir'])) {
             system(sprintf('rm -r %s', self::CACHE_DIR));
@@ -112,14 +112,14 @@ class BingPhotoTest extends TestCase
     /**
      * @dataProvider invalidCacheArgsProvider
      *
-     * @param $args
+     * @param array $args
      *
-     * @throws \Exception
+     * @throws Exception
      */
-    public function testInvalidCache($args = []): void
+    public function testInvalidCache(array $args = []): void
     {
         if (!empty($args['cacheDir']) && !file_exists($args['cacheDir'])) {
-            $this->expectException(\Exception::class);
+            $this->expectException(Exception::class);
         }
 
         $bingPhoto = new BingPhoto($args);
@@ -196,7 +196,7 @@ class BingPhotoTest extends TestCase
         ];
     }
 
-    public function cacheArgsProvider()
+    public function cacheArgsProvider(): array
     {
         return [
             'default options' => [
