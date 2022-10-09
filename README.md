@@ -35,15 +35,14 @@ $image = $bing->getImage();
 
 ## Parameters / options
 
-Breaking change as of v1: the parameter `resolution` was renamed to `quality`. See also the constants `BingPhoto::QUALITY_LOW` and `BingPhoto::QUALITY_HIGH`.
-
-| Parameter   |Description        |Default              |Valid values|
-|-------------|-------------------|---------------------|------------|
-| `cacheDir` | Directory for image caching | `null` | An existing directory, otherwise the directory will be created if possible |
-| `date` | Date of photo | `BingPhoto::DATE_TODAY` |`BingPhoto::DATE_YESTERDAY`<br>`BingPhoto::DATE_TODAY`<br>`BingPhoto::DATE_TOMORROW`<br>`any integer >= -1` |
-| `locale` |Locale code | `Locale::getDefault()` | Whatever language Bing supports |
-| `n` | Number of photos to fetch, going from date backwards | 1 | 1 - 8 |
-| `quality` | Image resolution | `BingPhoto::QUALITY_HIGH` | `BingPhoto::QUALITY_LOW`<br>`BingPhoto::QUALITY_HIGH` |
+| Parameter     | Description                                          | Default                            | Valid values                                                                                                |
+|---------------|------------------------------------------------------|------------------------------------|-------------------------------------------------------------------------------------------------------------|
+| `cacheDir`    | Directory for image caching                          | `null`                             | An existing directory, otherwise the directory will be created if possible                                  |
+| `date`        | Date of photo                                        | `BingPhoto::DATE_TODAY`            | `BingPhoto::DATE_YESTERDAY`<br>`BingPhoto::DATE_TODAY`<br>`BingPhoto::DATE_TOMORROW`<br>`any integer >= -1` |
+| `locale`      | Locale code                                          | `Locale::getDefault()`             | Whatever language Bing supports                                                                             |
+| `n`           | Number of photos to fetch, going from date backwards | 1                                  | 1 - 8                                                                                                       |
+| `orientation` | Image orientation                                    | `BingPhoto::ORIENTATION_LANDSCAPE` | `BingPhoto::ORIENTATION_LANDSCAPE`, `BingPhoto::ORIENTATION_PORTRAIT`                                       |
+| `quality`     | Image resolution                                     | `BingPhoto::QUALITY_HIGH`          | `BingPhoto::QUALITY_LOW`<br>`BingPhoto::QUALITY_HIGH`                                                       |
 
 
 ## Examples
@@ -82,6 +81,13 @@ $bing = new grubersjoe\BingPhoto([
 foreach ($bing->getImages() as $image) {
     printf('<img src="%s">', $image['url']);
 }
+```
+
+```php
+// Fetches the current image of the day in portrait orientation
+$bing = new grubersjoe\BingPhoto([
+    'orientation' => grubersjoe\BingPhoto::ORIENTATION_PORTRAIT
+]);
 ```
 
 ```php

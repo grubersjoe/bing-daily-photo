@@ -23,6 +23,7 @@ $rules = [
     'phpdoc_order' => true,
     'phpdoc_trim_consecutive_blank_line_separation' => true,
     'return_assignment' => true,
+    'yoda_style' => false,
 ];
 
 $config = (new PhpCsFixer\Config())

@@ -1,10 +1,9 @@
 <?php
 
-
 namespace grubersjoe;
 
-use PHPUnit\Framework\TestCase;
 use Exception;
+use PHPUnit\Framework\TestCase;
 
 class BingPhotoTest extends TestCase
 {
@@ -14,14 +13,14 @@ class BingPhotoTest extends TestCase
      * @dataProvider invalidArgumentProvider
      *
      * @param $expected
-     * @param array $args
+     * @param array $options
      *
      * @throws Exception
      */
-    public function testArgsValidation($expected, array $args = []): void
+    public function testOptionsValidation($expected, array $options = []): void
     {
-        $bingPhoto = new BingPhoto($args);
-        $actual = $bingPhoto->getArgs();
+        $bingPhoto = new BingPhoto($options);
+        $actual = $bingPhoto->getOptions();
 
         foreach ($expected as $key => $expectedArg) {
             static::assertEquals($expectedArg, $actual[$key]);
@@ -31,14 +30,12 @@ class BingPhotoTest extends TestCase
     /**
      * @dataProvider countArgsProvider
      *
-     * @param array $args
-     *
      * @throws Exception
      */
-    public function testCount(array $args = [])
+    public function testCount(array $options = [])
     {
-        $bingPhoto = new BingPhoto($args);
-        $count = min($args['n'] ?? 1, BingPhoto::LIMIT_N);
+        $bingPhoto = new BingPhoto($options);
+        $count = min($options['n'] ?? 1, BingPhoto::LIMIT_N);
         static::assertCount($count, $bingPhoto->getImages());
     }
 
@@ -46,43 +43,51 @@ class BingPhotoTest extends TestCase
     // TODO: date test
 
     /**
-     * @dataProvider qualityArgsProvider
-     *
-     * @param array $args
+     * @dataProvider qualityOptionProvider
      *
      * @throws Exception
      */
-    public function testQuality(array $args = []): void
+    public function testQuality(array $options = []): void
     {
-        $bingPhoto = new BingPhoto($args);
+        $bingPhoto = new BingPhoto($options);
         foreach ($bingPhoto->getImages() as $image) {
             list($width, $height) = getimagesize($image['url']);
-            $quality = $args['quality'] ?? BingPhoto::QUALITY_HIGH;
+            $quality = $options['quality'] ?? BingPhoto::QUALITY_HIGH;
             static::assertEquals($width . 'x' . $height, $quality);
         }
     }
 
     /**
-     * @dataProvider cacheArgsProvider
-     *
-     * @param array $args
+     * @dataProvider orientationOptionProvider
      *
      * @throws Exception
      */
-    public function testCache(array $args = []): void
+    public function testOrientation(string $expected, array $options = []): void
     {
-        if (file_exists($args['cacheDir'])) {
+        $bingPhoto = new BingPhoto($options);
+        static::assertEquals($expected, $bingPhoto->getOptions()['quality']);
+        static::assertStringContainsString($expected, $bingPhoto->getImage()['url']);
+    }
+
+    /**
+     * @dataProvider cacheOptionProvider
+     *
+     * @throws Exception
+     */
+    public function testCache(array $options = []): void
+    {
+        if (file_exists($options['cacheDir'])) {
             system(sprintf('rm -r %s', self::CACHE_DIR));
         }
 
-        $bingPhoto = new BingPhoto($args);
-        $args = $bingPhoto->getArgs();
+        $bingPhoto = new BingPhoto($options);
+        $options = $bingPhoto->getOptions();
 
         // Check if runfile was created
-        static::assertFileExists(sprintf('%s/%s', $args['cacheDir'], BingPhoto::RUNFILE_NAME));
+        static::assertFileExists(sprintf('%s/%s', $options['cacheDir'], BingPhoto::RUNFILE_NAME));
 
         // Check quantity
-        static::assertCount($args['n'], $bingPhoto->getCachedImages());
+        static::assertCount($options['n'], $bingPhoto->getCachedImages());
 
         $mtimes = [];
         foreach ($bingPhoto->getCachedImages() as $image) {
@@ -91,7 +96,7 @@ class BingPhotoTest extends TestCase
         }
 
         // Ensure that images are actually cached (with same config)
-        $bingPhoto = new BingPhoto($args);
+        $bingPhoto = new BingPhoto($options);
         foreach ($bingPhoto->getCachedImages() as $image) {
             clearstatcache($image);
             $mtime = filemtime($image);
@@ -101,8 +106,8 @@ class BingPhotoTest extends TestCase
 
         // Check cache busting (changed config)
         sleep(1);
-        $args['quality'] = BingPhoto::QUALITY_LOW;
-        $bingPhoto = new BingPhoto($args);
+        $options['quality'] = BingPhoto::QUALITY_LOW;
+        $bingPhoto = new BingPhoto($options);
         foreach ($bingPhoto->getCachedImages() as $image) {
             clearstatcache($image);
             static::assertNotEquals(filemtime($image), $mtimes[$image]);
@@ -112,17 +117,15 @@ class BingPhotoTest extends TestCase
     /**
      * @dataProvider invalidCacheArgsProvider
      *
-     * @param array $args
-     *
      * @throws Exception
      */
-    public function testInvalidCache(array $args = []): void
+    public function testInvalidCache(array $options = []): void
     {
-        if (!empty($args['cacheDir']) && !file_exists($args['cacheDir'])) {
+        if (!empty($options['cacheDir']) && !file_exists($options['cacheDir'])) {
             $this->expectException(Exception::class);
         }
 
-        $bingPhoto = new BingPhoto($args);
+        $bingPhoto = new BingPhoto($options);
         static::assertEmpty($bingPhoto->getCachedImages());
     }
 
@@ -130,32 +133,40 @@ class BingPhotoTest extends TestCase
     {
         return [
             'invalid date in future' => [
-                ['date' => -1],
+                ['date' => BingPhoto::TOMORROW],
                 ['date' => -2],
             ],
             'n too large' => [
-                ['n' => 8],
+                ['n' => BingPhoto::LIMIT_N],
                 ['n' => 9],
             ],
             'n zero' => [
-                ['n' => 1],
+                ['n' => BingPhoto::YESTERDAY],
                 ['n' => 0],
             ],
             'n negative' => [
-                ['n' => 1],
+                ['n' => BingPhoto::YESTERDAY],
                 ['n' => -2],
             ],
             'unavailable quality' => [
-                ['quality' => '1920x1080'],
+                ['quality' => BingPhoto::QUALITY_HIGH],
                 ['quality' => '800x600'],
             ],
             'invalid quality' => [
-                ['quality' => '1920x1080'],
+                ['quality' => BingPhoto::QUALITY_HIGH],
                 ['quality' => '😳'],
             ],
             'empty quality' => [
-                ['quality' => '1920x1080'],
+                ['quality' => BingPhoto::QUALITY_HIGH],
                 ['quality' => null],
+            ],
+            'invalid orientation' => [
+                ['orientation' => BingPhoto::ORIENTATION_LANDSCAPE],
+                ['orientation' => '👀'],
+            ],
+            'empty orientation' => [
+                ['orientation' => BingPhoto::ORIENTATION_LANDSCAPE],
+                ['orientation' => null],
             ],
         ];
     }
@@ -181,7 +192,7 @@ class BingPhotoTest extends TestCase
         ];
     }
 
-    public function qualityArgsProvider(): array
+    public function qualityOptionProvider(): array
     {
         return [
             'no arguments' => [
@@ -196,7 +207,21 @@ class BingPhotoTest extends TestCase
         ];
     }
 
-    public function cacheArgsProvider(): array
+    public function orientationOptionProvider(): array
+    {
+        return [
+            'landscape' => [
+                '1920x1080',
+                ['orientation' => BingPhoto::ORIENTATION_LANDSCAPE],
+            ],
+            'portrait' => [
+                '1080x1920',
+                ['orientation' => BingPhoto::ORIENTATION_PORTRAIT],
+            ],
+        ];
+    }
+
+    public function cacheOptionProvider(): array
     {
         return [
             'default options' => [
