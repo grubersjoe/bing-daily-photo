@@ -15,10 +15,10 @@ jobs:
       - name: Install dependencies
         uses: php-actions/composer@v6
         with:
-          php_version: 7.4
+          php_version: 8.1
           php_extensions: json intl
       - name: PHPUnit
         uses: php-actions/phpunit@v3
         with:
-          php_version: 7.4
+          php_version: 8.1
           php_extensions: json intl
