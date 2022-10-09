@@ -18,7 +18,7 @@ composer require grubersjoe/bing-daily-photo
 
 ```php
 <?php
-$bing = new grubersjoe\BingPhoto();
+$bing = new BingPhoto();
 $image = $bing->getImage();
 
 // Example result ($image)
@@ -49,9 +49,9 @@ $image = $bing->getImage();
 
 ```php
 // Fetches two images of the day starting yesterday from Bing
-$bing = new grubersjoe\BingPhoto([
+$bing = new BingPhoto([
     'n' => 2,
-    'date' => grubersjoe\BingPhoto::YESTERDAY
+    'date' => BingPhoto::YESTERDAY
 ]);
 
 foreach ($bing->getImages() as $image) {
@@ -61,9 +61,9 @@ foreach ($bing->getImages() as $image) {
 
 ```php
 // Fetches the current image of the day in low resolution from the French Bing portal
-$bing = new grubersjoe\BingPhoto([
+$bing = new BingPhoto([
     'locale' => 'fr-FR',
-    'quality' => grubersjoe\BingPhoto::QUALITY_LOW,
+    'quality' => BingPhoto::QUALITY_LOW,
 ]);
 
 printf('<img src="%s">', $bing->getImage()['url']);
@@ -71,11 +71,11 @@ printf('<img src="%s">', $bing->getImage()['url']);
 
 ```php
 // Fetches three images of the day in high quality from the German Bing portal, starting yesterday
-$bing = new grubersjoe\BingPhoto([
+$bing = new BingPhoto([
     'n' => 3,
-    'date' => grubersjoe\BingPhoto::YESTERDAY,
+    'date' => BingPhoto::YESTERDAY,
     'locale' => 'de-DE',
-    'quality' => grubersjoe\BingPhoto::QUALITY_HIGH,
+    'quality'r => BingPhoto::QUALITY_HIGH,
 ]);
 
 foreach ($bing->getImages() as $image) {
@@ -85,16 +85,16 @@ foreach ($bing->getImages() as $image) {
 
 ```php
 // Fetches the current image of the day in portrait orientation
-$bing = new grubersjoe\BingPhoto([
-    'orientation' => grubersjoe\BingPhoto::ORIENTATION_PORTRAIT
+$bing = new BingPhoto([
+    'orientation' => BingPhoto::ORIENTATION_PORTRAIT
 ]);
 ```
 
 ```php
 // Using the local cache 
-$bing = new grubersjoe\BingPhoto([
+$bing = new BingPhoto([
     'cacheDir' => '/tmp/bing-photo',
     'n' => 5,
-    'quality' => grubersjoe\BingPhoto::QUALITY_LOW,
+    'quality' => BingPhoto::QUALITY_LOW,
 ]);
 ```
